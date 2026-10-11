@@ -1,7 +1,7 @@
 # AGENTS.md — mitra-fe
 
-Mitra's **customer-facing frontend**: the landing page and the developer portal (`/docs`)
-today, the client app next.
+Mitra's **customer-facing frontend**: the landing page, the developer portal (`/docs`) and
+the customer app (`/app`).
 The engine (kernel, vaults, settlement, the `forge/` control plane) lives in the
 sibling repo `../mitra`. This repo talks *about* the engine and, later, *to* it;
 it never reimplements it.
@@ -73,7 +73,28 @@ across pages. `$` before a digit is a price, not maths. Pictograph emoji are dro
 prose (not from code blocks, where the ASCII diagrams depend on their width). Links to
 sibling pages become `/docs/<slug>`; other relative links point at the engine repo on GitHub.
 
-The client app will go in its own route group, `app/(app)/…`, beside `(marketing)`.
+## The customer app (`/app`)
+
+For the people behind the agents: they fund a vault, give agents limits, watch payments,
+step in, and see what cleared. Agents never use it; they use the SDK, API or MCP.
+Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
+
+- Routes are `/app/<workspace>/…`. `/app` sends a new arrival to `/app/new`.
+- **Two workspaces today, and why.** The engine has no customer accounts (no
+  organisations, sign-in or per-customer keys), so the app cannot know who a user is.
+  `new` is the empty workspace every new user starts in; its pages are the onboarding:
+  each empty page says what is missing and links to the step that fills it. `acme` is
+  demo data (`lib/app/demo.ts`), labelled "Demo data" on every page.
+- **One data seam:** screens read only `lib/app/workspaces.ts` and the types in
+  `lib/app/types.ts`. An engine-backed workspace plugs in there once accounts exist.
+- **Actions are honest.** `DemoAction` buttons (approve, pause, accept, revoke) do nothing
+  and say so; nothing in the app may claim a payment, refund or pause happened.
+- **The setup snippets are the engine's real interface**, checked against `../mitra`
+  (`lib/sdk/client.ts`, `app/api/v1/mandates/route.ts`, `scripts/mitra-mcp.ts`). Re-check
+  them when the engine changes. There is no API to create a vault, so that step points
+  at early access rather than a form.
+- The design adds a "needs you over $X" review threshold; the engine has the `REVIEW`
+  decision but no such mandate field yet.
 
 ## Conventions
 
