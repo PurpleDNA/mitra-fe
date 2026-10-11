@@ -1,4 +1,5 @@
 import { InView } from "@/components/InView";
+import { RiseTitle } from "@/components/RiseTitle";
 import "./checks.css";
 
 const DIAMONDS = [
@@ -83,23 +84,104 @@ function Diagram() {
   );
 }
 
+/** Phones: the same flow top to bottom. "No" branches turn right into Stopped. */
+const M_DIAMONDS = [
+  { cy: 236, lines: ["Within", "budget?"] },
+  { cy: 396, lines: ["Approved by", "your rules?"] },
+  { cy: 556, lines: ["Exact", "match?"] },
+];
+
+function DiagramMobile() {
+  return (
+    <svg
+      className="chk-svg-m"
+      viewBox="0 0 360 790"
+      role="img"
+      aria-label="A payment passes three checks in order: within budget, approved by your rules, and an exact match. Passing all three, it is paid with a receipt. Failing any one, it is stopped and nothing moves."
+    >
+      <defs>
+        <marker id="chk-m-head" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0 0 L4 2 L0 4 Z" fill="#0b0b0c" />
+        </marker>
+        <marker id="chk-m-head-stop" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0 0 L4 2 L0 4 Z" fill="#e0341c" />
+        </marker>
+      </defs>
+
+      {[
+        [36, 71],
+        [136, 171],
+        [296, 331],
+        [456, 491],
+        [616, 651],
+        [716, 753],
+      ].map(([a, b]) => (
+        <line key={a} className="chk-arrow" x1={130} y1={a} x2={130} y2={b} markerEnd="url(#chk-m-head)" />
+      ))}
+      <path className="chk-no" d="M214 236 H300 M214 396 H300 M214 556 H300 M300 236 V640" />
+      <line className="chk-no-head" x1={300} y1={640} x2={300} y2={651} markerEnd="url(#chk-m-head-stop)" />
+
+      <circle cx={130} cy={24} r={12} className="chk-ink" />
+      <rect x={40} y={76} width={180} height={60} className="chk-card" />
+      <text x={130} y={111} className="chk-card-t" textAnchor="middle">Agent asks to pay</text>
+
+      {M_DIAMONDS.map((d) => (
+        <g key={d.cy}>
+          <polygon className="chk-ink" points={`130,${d.cy - 60} 214,${d.cy} 130,${d.cy + 60} 46,${d.cy}`} />
+          <text x={130} y={d.cy - 4} className="chk-dia-t" textAnchor="middle">{d.lines[0]}</text>
+          <text x={130} y={d.cy + 13} className="chk-dia-t" textAnchor="middle">{d.lines[1]}</text>
+        </g>
+      ))}
+
+      <rect x={34} y={650} width={192} height={72} className="chk-ring chk-ring-paid" />
+      <rect x={40} y={656} width={180} height={60} className="chk-paid" />
+      <text x={130} y={683} className="chk-paid-t" textAnchor="middle">Paid</text>
+      <text x={130} y={702} className="chk-paid-s" textAnchor="middle">+ RECEIPT</text>
+      <circle cx={130} cy={770} r={12} className="chk-end" />
+      <circle cx={130} cy={770} r={6} className="chk-ink" />
+
+      <rect x={238} y={650} width={124} height={72} className="chk-ring chk-ring-stop" />
+      <rect x={244} y={656} width={112} height={60} className="chk-stop" />
+      <text x={300} y={683} className="chk-card-t chk-strong" textAnchor="middle">Stopped</text>
+      <text x={300} y={702} className="chk-mono chk-mute chk-mono-sm" textAnchor="middle">NOTHING MOVES</text>
+
+      {[318, 478, 638].map((y) => (
+        <text key={y} x={150} y={y} className="chk-yes">yes</text>
+      ))}
+      {[236, 396, 556].map((y) => (
+        <text key={y} x={257} y={y - 10} className="chk-no-t" textAnchor="middle">no</text>
+      ))}
+      <text x={10} y={612} className="chk-mono">RE-CHECKED</text>
+      <text x={10} y={626} className="chk-mono">ON-CHAIN</text>
+      <text x={10} y={472} className="chk-mono chk-chg">RECIPIENT</text>
+      <text x={10} y={486} className="chk-mono chk-chg">CHANGED</text>
+
+      <g className="chk-dot-m">
+        <circle r={12} className="chk-dot-ring" />
+        <circle r={8} className="chk-dot-c" />
+      </g>
+    </svg>
+  );
+}
+
 export function ThreeChecks() {
   return (
     <InView className="chk wrap" id="checks" aria-labelledby="checks-title">
       <div className="chk-top">
-        <p className="tag chk-eyebrow">[ How it works ] · FIG_02</p>
+        <p className="tag chk-eyebrow">[ How it works ]</p>
         <p className="tag chk-run" aria-hidden="true">
           <span className="chk-s1">Run 01 · All checks pass → Paid</span>
           <span className="chk-s2">Run 02 · Recipient changed → Stopped</span>
         </p>
       </div>
-      <h2 id="checks-title" className="chk-title">Three checks. Every payment.</h2>
+      <RiseTitle id="checks-title" className="chk-title" text="Three checks. Every payment." />
       <p className="chk-lede">
         Your agent can ask to pay. It can’t skip a check, and an approval on its own never moves money. The last
         check looks at this exact payment, again.
       </p>
-      <div className="chk-scroll">
+      <div className="chk-dia">
         <Diagram />
+        <DiagramMobile />
       </div>
       <div className="chk-below">
         <p className="chk-note">
@@ -111,10 +193,6 @@ export function ThreeChecks() {
           <li><span className="chk-key chk-key-stop" />Stopped</li>
           <li><span className="chk-key chk-key-check" />Check</li>
         </ul>
-      </div>
-      <div className="chk-foot tag">
-        <span>[ Allow ≠ Payment ] · Budget → Rules → Final check</span>
-        <span>The agent never holds the keys</span>
       </div>
     </InView>
   );

@@ -150,11 +150,9 @@ export function Hero() {
         </div>
       </div>
       <aside className="hero-panel dots" aria-label="How clearing works">
-        <div className="hero-cap tag">
-          <span>FIG_01 — Clearing</span>
-          <span>[ Netting ≠ Settlement ]</span>
+        <div className="hero-figwrap">
+          <ClearingFigure />
         </div>
-        <ClearingFigure />
         <p className="hero-sub">
           Mitra is the financial coordination layer between AI agents and money. It holds each budget,
           checks every payment, carries every deal through failure, and cancels out what agents owe each
@@ -163,9 +161,6 @@ export function Hero() {
         <div className="hero-ctas">
           <a href={site.earlyAccessHref} className="btn btn-dark">
             Get early access <span aria-hidden="true">›</span>
-          </a>
-          <a href="#checks" className="btn btn-line">
-            See how it works
           </a>
         </div>
         <p className="tag hero-net">[ {site.networkStatus} ]</p>

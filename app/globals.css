@@ -16,6 +16,7 @@
   --stop: #e0341c;
   --stop-text: #b8260f;
   --gutter: clamp(16px, 4vw, 48px);
+  --nav-h: 72px;
   --maxw: 1440px;
   --sans: var(--font-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
   --mono: var(--font-mono), ui-monospace, Menlo, monospace;
@@ -42,6 +43,10 @@ body {
 
 a {
   color: inherit;
+}
+
+@media (max-width: 420px) {
+  :root { --nav-h: 60px; }
 }
 
 img,
@@ -165,4 +170,32 @@ button:focus-visible {
   clip: rect(0, 0, 0, 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* Section headings rise word by word when they first scroll into view (<RiseTitle>). */
+.rise-w {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+.rise-w > span {
+  display: inline-block;
+}
+.rise-acc {
+  color: var(--accent);
+}
+.rise-wait .rise-w > span {
+  transform: translateY(105%);
+}
+.rise-go .rise-w > span {
+  animation: rise-up 1s cubic-bezier(0.2, 0.9, 0.25, 1.12) both;
+}
+@keyframes rise-up {
+  0% { transform: translateY(105%); }
+  100% { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rise-wait .rise-w > span { transform: none; }
 }

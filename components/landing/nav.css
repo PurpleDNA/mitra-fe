@@ -7,7 +7,8 @@
   border-bottom: 1px solid var(--line);
 }
 .nav-in {
-  height: 72px;
+  /* The 1px border is part of --nav-h, so the hero can fill exactly what is left. */
+  height: calc(var(--nav-h) - 1px);
   padding: 0 var(--gutter);
   display: flex;
   align-items: center;
@@ -51,9 +52,6 @@
   }
 }
 @media (max-width: 420px) {
-  .nav-in {
-    height: 60px;
-  }
   .nav-logo {
     font-size: 20px;
   }

@@ -49,17 +49,26 @@
   color: var(--body);
 }
 
-/* On phones the diagram keeps its proportions and scrolls sideways in its own box. */
-.chk-scroll {
-  overflow-x: auto;
-  margin: 8px calc(var(--gutter) * -1) 0;
-  padding: 0 var(--gutter);
+.chk-dia {
+  margin-top: 8px;
 }
 .chk-svg {
   width: 100%;
-  min-width: 880px;
   height: auto;
   overflow: visible;
+}
+/* Phones get the vertical version of the same diagram instead of a tiny one. */
+.chk-svg-m {
+  display: none;
+  width: 100%;
+  max-width: 400px;
+  height: auto;
+  margin: 0 auto;
+  overflow: visible;
+}
+@media (max-width: 760px) {
+  .chk-svg { display: none; }
+  .chk-svg-m { display: block; }
 }
 
 .chk-arrow { stroke: var(--ink); stroke-width: 2; }
@@ -78,6 +87,7 @@
 .chk-stop-sq { fill: var(--stop); }
 .chk-mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; fill: var(--ink); }
 .chk-mute { fill: var(--mute); }
+.chk-mono-sm { font-size: 9.5px; letter-spacing: 0.06em; }
 .chk-yes { font-family: var(--sans); font-size: 13px; fill: var(--mute); }
 .chk-no-t { font-family: var(--sans); font-size: 13px; fill: var(--stop-text); }
 .chk-chg { fill: var(--stop-text); opacity: 0; animation: chk-chg 14s ease-out infinite; }
@@ -115,6 +125,32 @@
   85% { transform: translate(756px, 620px); }
   88%, 96% { transform: translate(756px, 720px); opacity: 1; }
   98%, 100% { transform: translate(756px, 720px); opacity: 0; }
+}
+.chk-dot-m { opacity: 0; animation: chk-dot-m 14s linear infinite; }
+@keyframes chk-dot-m {
+  0% { transform: translate(130px, 24px); opacity: 0; }
+  2% { transform: translate(130px, 24px); opacity: 1; }
+  5% { transform: translate(130px, 106px); }
+  8%, 11% { transform: translate(130px, 156px); }
+  13% { transform: translate(130px, 310px); }
+  16%, 19% { transform: translate(130px, 316px); }
+  21% { transform: translate(130px, 470px); }
+  24%, 27% { transform: translate(130px, 476px); }
+  29% { transform: translate(130px, 630px); }
+  34%, 44% { transform: translate(130px, 686px); opacity: 1; }
+  46% { transform: translate(130px, 686px); opacity: 0; }
+  48%, 50% { transform: translate(130px, 24px); opacity: 0; }
+  52% { transform: translate(130px, 24px); opacity: 1; }
+  55% { transform: translate(130px, 106px); }
+  58%, 61% { transform: translate(130px, 156px); }
+  63% { transform: translate(130px, 310px); }
+  66%, 69% { transform: translate(130px, 316px); }
+  71% { transform: translate(130px, 470px); }
+  74%, 77% { transform: translate(130px, 476px); }
+  79% { transform: translate(130px, 556px); }
+  82% { transform: translate(300px, 556px); }
+  88%, 96% { transform: translate(300px, 686px); opacity: 1; }
+  98%, 100% { transform: translate(300px, 686px); opacity: 0; }
 }
 @keyframes chk-dot-c {
   0%, 74% { fill: var(--accent); }
@@ -174,18 +210,10 @@
 .chk-key-pay { border-radius: 50%; background: var(--accent); }
 .chk-key-stop { border-radius: 50%; background: var(--stop); }
 .chk-key-check { background: var(--ink); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
-.chk-foot {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  border-top: 1px solid var(--line);
-  padding-top: 14px;
-  font-size: 11px;
-}
 
 /* Reduced motion: show the dot resting on Paid. */
 @media (prefers-reduced-motion: reduce) {
   .chk-dot { opacity: 1; transform: translate(1256px, 430px); }
+  .chk-dot-m { opacity: 1; transform: translate(130px, 686px); }
   .chk-s2 { opacity: 0; }
 }

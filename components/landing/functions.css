@@ -50,8 +50,8 @@
 }
 .fn-stick {
   position: sticky;
-  top: 72px;
-  height: calc(100svh - 72px);
+  top: var(--nav-h);
+  height: calc(100svh - var(--nav-h));
   display: flex;
   align-items: center;
   overflow: hidden;

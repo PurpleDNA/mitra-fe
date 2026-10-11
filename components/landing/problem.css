@@ -5,8 +5,7 @@
   gap: 28px;
   border-bottom: 1px solid var(--line);
 }
-.pb-top,
-.pb-foot {
+.pb-top {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
@@ -68,6 +67,7 @@
   color: var(--body);
 }
 .pb-foot {
+  margin: 0;
   border-top: 1px solid var(--line);
   padding-top: 14px;
   font-size: 11px;
@@ -77,8 +77,9 @@
 }
 
 .pb-fly { animation: pb-fly 4s cubic-bezier(0.3, 0.7, 0.3, 1) infinite; }
+/* Each chip starts at the middle of the cube (--fx/--fy) and flies out along its line. */
 @keyframes pb-fly {
-  0% { transform: translate(-70px, 70px); opacity: 0; }
+  0% { transform: translate(var(--fx), var(--fy)); opacity: 0; }
   12% { opacity: 1; }
   60% { transform: none; opacity: 1; }
   85%, 100% { transform: none; opacity: 0; }

@@ -59,11 +59,6 @@
   gap: 20px;
   min-width: 0;
 }
-.cf-cap {
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 0.14em;
-}
 
 /* One box, two states. */
 .cf-card {
@@ -137,13 +132,19 @@
   grid-area: 1 / 1;
 }
 
-.cf-scroll {
-  overflow-x: auto;
-}
 .cf-svg {
   width: 100%;
-  min-width: 520px;
   height: auto;
+}
+/* Phones get a narrower drawing of the same diagram rather than a shrunken one. */
+.cf-svg-m {
+  display: none;
+  width: 100%;
+  height: auto;
+}
+@media (max-width: 640px) {
+  .cf-svg { display: none; }
+  .cf-svg-m { display: block; }
 }
 .cf-party { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
 .cf-party-dark { fill: var(--ink); }
@@ -158,18 +159,10 @@
 .cf-amt-b { font-size: 15px; font-weight: 500; }
 .cf-tagbox { fill: var(--accent-tint); stroke: var(--accent); stroke-width: 1; }
 .cf-eq { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; fill: var(--mute); }
+.cf-eq-m { font-size: 10.5px; letter-spacing: 0.02em; }
 .cf-dot-ring { fill: #fff; }
 .cf-dot-c { fill: var(--ink); animation: cf-dot-c 16s linear infinite; }
 
-.cf-foot {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  border-top: 1px solid #dadad5;
-  padding-top: 14px;
-  font-size: 11px;
-}
 
 /* One clock for every piece. A = without Mitra, B = with Mitra.
    48–50% A fades out, 50–52% B fades in; 96–98% B out, 98–100% A in.
@@ -179,6 +172,7 @@
 .cf-ghost { opacity: 0.08; animation: cf-ghost 16s ease-in-out infinite; }
 .cf-res { animation: cf-res 16s ease-in-out infinite; }
 .cf-dot { opacity: 0; animation: cf-dot 16s linear infinite; }
+.cf-dot-m { opacity: 0; animation: cf-dot-m 16s linear infinite; }
 
 @property --cf-pa { syntax: "<integer>"; initial-value: 4; inherits: false; }
 @property --cf-ma { syntax: "<integer>"; initial-value: 250; inherits: false; }
@@ -225,6 +219,29 @@
   52% { transform: translate(280px, 348px); opacity: 1; }
   60% { transform: translate(597px, 348px); opacity: 1; }
   61%, 100% { transform: translate(597px, 348px); opacity: 0; }
+}
+
+@keyframes cf-dot-m {
+  0%, 4% { transform: translate(160px, 44px); opacity: 0; }
+  5% { transform: translate(160px, 44px); opacity: 1; }
+  12% { transform: translate(259px, 44px); opacity: 1; }
+  13% { transform: translate(259px, 44px); opacity: 0; }
+  14% { transform: translate(260px, 76px); opacity: 0; }
+  15% { transform: translate(260px, 76px); opacity: 1; }
+  22% { transform: translate(161px, 76px); opacity: 1; }
+  23% { transform: translate(161px, 76px); opacity: 0; }
+  24% { transform: translate(60px, 100px); opacity: 0; }
+  25% { transform: translate(60px, 100px); opacity: 1; }
+  30% { transform: translate(60px, 249px); opacity: 1; }
+  31% { transform: translate(60px, 249px); opacity: 0; }
+  32% { transform: translate(110px, 250px); opacity: 0; }
+  33% { transform: translate(110px, 250px); opacity: 1; }
+  38% { transform: translate(110px, 101px); opacity: 1; }
+  39% { transform: translate(110px, 101px); opacity: 0; }
+  51% { transform: translate(160px, 60px); opacity: 0; }
+  52% { transform: translate(160px, 60px); opacity: 1; }
+  60% { transform: translate(257px, 60px); opacity: 1; }
+  61%, 100% { transform: translate(257px, 60px); opacity: 0; }
 }
 
 @media (max-width: 960px) {

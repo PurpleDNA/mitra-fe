@@ -1,4 +1,5 @@
 import { InView } from "@/components/InView";
+import { RiseTitle } from "@/components/RiseTitle";
 import "./problem.css";
 
 function Chip({ a = 21, b = 12, t = 3 }: { a?: number; b?: number; t?: number }) {
@@ -11,24 +12,36 @@ function Chip({ a = 21, b = 12, t = 3 }: { a?: number; b?: number; t?: number })
   );
 }
 
+/** Where the wallet's money leaves from: the middle of the cube's top face. */
+const ORIGIN = [-30, 8] as const;
+/** Each chip's resting place, and its launch delay. */
+const DRAIN = [
+  [45, -40, 0],
+  [75, -22, 0.4],
+  [95, -57, 0.8],
+] as const;
+
 function FigDrain() {
   return (
     <svg viewBox="-130 -80 260 160" aria-hidden="true">
       <text className="fig-lbl fig-sm" x={-122} y={-56}>“SEND IT ALL”</text>
-      <path className="fig-guide" d="M-20 -12 L45 -38 M-10 -4 L75 -20 M0 -14 L95 -55" />
       <g transform="translate(-30,8)">
         <polygon className="fig-face" points="0,-40 69,0 0,40 -69,0" />
         <polygon className="fig-side" points="-69,0 0,40 0,54 -69,14" />
         <polygon className="fig-side" points="69,0 0,40 0,54 69,14" />
         <polygon className="fig-face pb-hole" points="0,-20 35,0 0,20 -35,0" />
       </g>
-      {[
-        [45, -40, 0],
-        [75, -22, 0.4],
-        [95, -57, 0.8],
-      ].map(([x, y, d]) => (
-        <g key={`${x}`} transform={`translate(${x},${y})`}>
-          <g className="pb-fly" style={{ animationDelay: `${d}s` }}>
+      {DRAIN.map(([x, y]) => (
+        <path key={`l${x}`} className="fig-guide" d={`M${ORIGIN[0]} ${ORIGIN[1]} L${x} ${y}`} />
+      ))}
+      {DRAIN.map(([x, y, d]) => (
+        <g key={`c${x}`} transform={`translate(${x},${y})`}>
+          <g
+            className="pb-fly"
+            style={
+              { "--fx": `${ORIGIN[0] - x}px`, "--fy": `${ORIGIN[1] - y}px`, animationDelay: `${d}s` } as React.CSSProperties
+            }
+          >
             <Chip />
           </g>
         </g>
@@ -108,7 +121,7 @@ export function Problem() {
         <span>[ The problem ] · Why Mitra</span>
         <span>[ Intent ≠ Capital ]</span>
       </div>
-      <h2 id="problem-title" className="pb-title">An agent with a wallet is a blank cheque.</h2>
+      <RiseTitle id="problem-title" className="pb-title" text="An agent with a wallet is a blank cheque." />
       <p className="pb-lede">Today, people give an AI agent a funded wallet and hope for the best. Four things go wrong.</p>
       <ol className="pb-grid">
         {ITEMS.map((it, i) => (
@@ -120,10 +133,7 @@ export function Problem() {
           </li>
         ))}
       </ol>
-      <div className="pb-foot tag">
-        <span>Mitra answers all four ↓</span>
-        <span>The budget · Three checks · The safety net · Clear first</span>
-      </div>
+      <p className="pb-foot tag">Mitra answers all four ↓</p>
     </InView>
   );
 }

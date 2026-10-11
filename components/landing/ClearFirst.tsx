@@ -1,4 +1,5 @@
 import { InView } from "@/components/InView";
+import { RiseTitle } from "@/components/RiseTitle";
 import "./clear.css";
 
 function Party({ x, y, name, role, dark = false }: { x: number; y: number; name: string; role: string; dark?: boolean }) {
@@ -62,17 +63,76 @@ function Diagram() {
   );
 }
 
+/** Phones: the same four debts, packed into a narrow frame so nothing scrolls sideways. */
+function DiagramMobile() {
+  return (
+    <svg
+      className="cf-svg-m"
+      viewBox="0 0 420 340"
+      role="img"
+      aria-label="Without Mitra, four payments move $250. With Mitra, the debts are cleared first and one payment of $30 goes from you to Northwind."
+    >
+      <defs>
+        <marker id="cf-m-head" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0 0 L4 2 L0 4 Z" fill="#0b0b0c" />
+        </marker>
+        <marker id="cf-m-head-acc" viewBox="0 0 4 4" refX="2" refY="2" markerWidth="3.5" markerHeight="3.5" orient="auto">
+          <path d="M0 0 L4 2 L0 4 Z" className="cf-head-acc" />
+        </marker>
+      </defs>
+      <g className="cf-ghost">
+        <line className="cf-arrow" x1={160} y1={44} x2={255} y2={44} markerEnd="url(#cf-m-head)" />
+        <line className="cf-arrow" x1={260} y1={76} x2={165} y2={76} markerEnd="url(#cf-m-head)" />
+        <line className="cf-arrow" x1={60} y1={100} x2={60} y2={245} markerEnd="url(#cf-m-head)" />
+        <line className="cf-arrow" x1={110} y1={250} x2={110} y2={105} markerEnd="url(#cf-m-head)" />
+      </g>
+      <line className="cf-res" x1={160} y1={60} x2={250} y2={60} markerEnd="url(#cf-m-head-acc)" />
+
+      <PartyM x={10} y={20} name="You" role="YOUR AGENT" dark />
+      <PartyM x={260} y={20} name="Northwind" role="DESIGN STUDIO" />
+      <PartyM x={10} y={250} name="Atlas" role="DATA PROVIDER" />
+
+      <g className="cf-a">
+        <text x={210} y={36} className="cf-amt" textAnchor="middle">$100</text>
+        <text x={210} y={95} className="cf-amt" textAnchor="middle">$70</text>
+        <text x={36} y={180} className="cf-amt" textAnchor="middle">$40</text>
+        <text x={134} y={180} className="cf-amt" textAnchor="middle">$40</text>
+      </g>
+      <g className="cf-b">
+        <rect x={180} y={20} width={60} height={22} className="cf-tagbox" />
+        <text x={210} y={36} className="cf-amt cf-amt-b" textAnchor="middle">$30</text>
+        <text x={210} y={95} className="cf-eq cf-eq-m" textAnchor="middle">100 − 70 = 30</text>
+        <text x={122} y={172} className="cf-eq cf-eq-m">40 − 40 = 0</text>
+        <text x={122} y={188} className="cf-eq cf-eq-m">CANCELS OUT</text>
+      </g>
+      <g className="cf-dot-m">
+        <circle r={10} className="cf-dot-ring" />
+        <circle r={7} className="cf-dot-c" />
+      </g>
+    </svg>
+  );
+}
+
+function PartyM({ x, y, name, role, dark = false }: { x: number; y: number; name: string; role: string; dark?: boolean }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={150} height={80} className={dark ? "cf-party-dark" : "cf-party"} />
+      <text x={x + 75} y={y + 38} className={dark ? "cf-name cf-name-dark" : "cf-name"} textAnchor="middle">{name}</text>
+      <text x={x + 75} y={y + 56} className={dark ? "cf-role cf-role-dark" : "cf-role"} textAnchor="middle">{role}</text>
+    </g>
+  );
+}
+
 export function ClearFirst() {
   return (
     <InView className="cf" id="clear" aria-labelledby="clear-title">
       <div className="cf-copy">
         <div className="cf-copy-top">
           <div className="tag cf-row">
-            <span>[ Netting ≠ Settlement ]</span>
-            <span className="cf-rule" aria-hidden="true" />
             <span className="cf-count">04 / 05</span>
+            <span className="cf-rule" aria-hidden="true" />
           </div>
-          <h2 id="clear-title" className="cf-title">Clear first. Move only what remains.</h2>
+          <RiseTitle id="clear-title" className="cf-title" text="Clear first. Move only what remains." />
           <p className="cf-p">
             When people owe each other, Mitra adds it all up first. What cancels out never moves, so there are fewer
             payments, fewer fees, and less that can go wrong.
@@ -89,8 +149,6 @@ export function ClearFirst() {
       </div>
 
       <div className="cf-panel dots">
-        <p className="tag cf-cap">FIG_04 — The same debts, twice</p>
-
         <div className="cf-card" aria-live="off">
           <div className="cf-lay cf-a">
             <span className="tag cf-k">Without Mitra</span>
@@ -131,13 +189,9 @@ export function ClearFirst() {
           </span>
         </div>
 
-        <div className="cf-scroll">
+        <div className="cf-dia">
           <Diagram />
-        </div>
-
-        <div className="tag cf-foot">
-          <span>Same debts · Same people</span>
-          <span>Four payments become one</span>
+          <DiagramMobile />
         </div>
       </div>
     </InView>
