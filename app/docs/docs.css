@@ -1,0 +1,629 @@
+/* Developer portal. Same tokens and voice as the landing page (globals.css). */
+.dz {
+  --top-h: 64px;
+  min-height: 100svh;
+}
+
+/* ── Top bar ─────────────────────────────────────────────────────────────── */
+.dz-top {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: saturate(1.4) blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.dz-top-in {
+  height: var(--top-h);
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.dz-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.dz-mark {
+  width: 16px;
+  height: 16px;
+  background: var(--accent);
+  display: block;
+}
+.dz-docs-tag {
+  text-decoration: none;
+  color: var(--ink);
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+}
+.dz-top-gap {
+  flex: 1;
+}
+.dz-search-btn {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 40px;
+  padding: 0 10px 0 14px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  font: inherit;
+  font-size: 14px;
+  color: var(--mute);
+  cursor: pointer;
+}
+.dz-search-btn kbd {
+  font-size: 11px;
+  padding: 2px 6px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.dz-llms {
+  text-decoration: none;
+}
+.dz-llms:hover {
+  color: var(--ink);
+}
+.dz-cta {
+  min-height: 40px;
+  padding: 0 16px;
+  font-size: 12px;
+}
+.dz-draft {
+  margin: 0;
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 9px var(--gutter);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: none;
+  color: var(--body);
+  border-top: 1px solid var(--line);
+}
+.dz-draft-sq {
+  width: 8px;
+  height: 8px;
+  flex: none;
+  background: var(--stop);
+  display: block;
+}
+
+/* ── Three columns ───────────────────────────────────────────────────────── */
+.dz-body {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 232px;
+}
+.dz-side {
+  border-right: 1px solid var(--line);
+}
+.dz-side-in {
+  position: sticky;
+  top: calc(var(--top-h) + 40px);
+  max-height: calc(100svh - var(--top-h) - 40px);
+  overflow-y: auto;
+  padding: 28px 24px 48px var(--gutter);
+}
+.dz-menu {
+  display: none;
+}
+.dz-track {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.dz-track select {
+  font: inherit;
+  font-size: 14px;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid var(--ink);
+  background: #fff;
+  color: var(--ink);
+}
+.dz-sec {
+  margin-bottom: 24px;
+}
+.dz-sec .tag {
+  margin: 0 0 8px;
+  font-size: 11px;
+}
+.dz-sec ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dz-sec a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-size: 15px;
+  text-decoration: none;
+  color: var(--body);
+}
+.dz-sec a:hover {
+  color: var(--ink);
+}
+.dz-sec a.on {
+  color: var(--ink);
+  font-weight: 600;
+}
+.dz-sec a.on::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  background: var(--accent);
+  flex: none;
+}
+
+.dz-main {
+  min-width: 0;
+  padding: 44px clamp(20px, 4vw, 64px) 96px;
+  max-width: 860px;
+}
+.dz-crumb {
+  margin: 0 0 14px;
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+}
+.dz-h1 {
+  margin: 0 0 28px;
+  font-size: clamp(36px, 4vw, 52px);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+
+.dz-toc {
+  position: sticky;
+  top: calc(var(--top-h) + 40px);
+  align-self: start;
+  max-height: calc(100svh - var(--top-h) - 40px);
+  overflow-y: auto;
+  padding: 44px var(--gutter) 48px 8px;
+}
+.dz-toc .tag {
+  margin: 0 0 12px;
+  font-size: 11px;
+}
+.dz-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--line);
+}
+.dz-toc li a {
+  display: block;
+  margin-left: -1px;
+  padding: 5px 0 5px 12px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--mute);
+  text-decoration: none;
+  border-left: 1px solid transparent;
+}
+.dz-toc li.sub a {
+  padding-left: 24px;
+}
+.dz-toc li a:hover {
+  color: var(--ink);
+}
+.dz-toc li a.on {
+  color: var(--ink);
+  border-left-color: var(--accent);
+}
+
+/* ── Prose ───────────────────────────────────────────────────────────────── */
+.dz-prose {
+  font-size: 17px;
+  line-height: 1.65;
+  color: var(--body);
+}
+.dz-prose > * + * {
+  margin-top: 1.1em;
+}
+.dz-prose h2 {
+  margin: 2.4em 0 0.2em;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+  scroll-margin-top: calc(var(--top-h) + 56px);
+}
+.dz-prose h3 {
+  margin: 2em 0 0;
+  font-size: 21px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  scroll-margin-top: calc(var(--top-h) + 56px);
+}
+.dz-prose h4 {
+  margin: 1.6em 0 0;
+  font-size: 17px;
+  color: var(--ink);
+}
+.dz-prose hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2.6em 0;
+}
+.dz-prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-underline-offset: 3px;
+}
+.dz-prose strong {
+  color: var(--ink);
+}
+.dz-prose ul,
+.dz-prose ol {
+  padding-left: 1.3em;
+}
+.dz-prose li + li {
+  margin-top: 0.35em;
+}
+.dz-prose :not(pre) > code {
+  font-family: var(--mono);
+  font-size: 0.86em;
+  padding: 0.12em 0.36em;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.dz-prose pre {
+  margin-top: 1.1em;
+  padding: 18px 20px;
+  overflow-x: auto;
+  background: var(--panel) !important;
+  border: 1px solid var(--line);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink);
+}
+.dz-prose pre code {
+  font-family: inherit;
+  background: none !important;
+}
+/* Fences without a language are the pages' ASCII diagrams. */
+.dz-prose pre:not(.shiki) {
+  font-size: 12px;
+  line-height: 1.45;
+  background: #fff !important;
+}
+.dz-prose blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 16px 20px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.dz-prose blockquote > * {
+  margin: 0;
+}
+.dz-prose blockquote > * + * {
+  margin-top: 0.5em;
+}
+.dz-table {
+  overflow-x: auto;
+}
+.dz-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+  line-height: 1.45;
+}
+.dz-prose th {
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+  padding: 10px 12px 10px 0;
+  border-bottom: 1.5px solid var(--ink);
+}
+.dz-prose td {
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+.dz-prose .katex-display {
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 6px 0;
+}
+
+/* Language tabs. */
+.dz-tabs {
+  margin-top: 1.1em;
+  border: 1px solid var(--line);
+}
+.dz-tablist {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+}
+.dz-tablist button {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 11px 16px;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  color: var(--mute);
+  cursor: pointer;
+}
+.dz-tablist button:hover {
+  color: var(--ink);
+}
+.dz-tablist button.on {
+  color: var(--ink);
+  border-bottom-color: var(--accent);
+}
+.dz-tabs pre {
+  margin: 0;
+  border: 0;
+}
+
+/* Previous / next, source line. */
+.dz-pager {
+  margin-top: 72px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.dz-pg {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  text-decoration: none;
+  font-weight: 600;
+}
+.dz-pg:hover {
+  border-color: var(--ink);
+}
+.dz-pg-next {
+  text-align: right;
+  grid-column: 2;
+}
+.dz-source {
+  margin: 28px 0 0;
+  font-size: 11px;
+  text-transform: none;
+}
+.dz-source a {
+  color: var(--mute);
+}
+
+/* ── Docs home ───────────────────────────────────────────────────────────── */
+.dz-home {
+  max-width: 980px;
+}
+.dz-home > .tag {
+  margin: 0 0 14px;
+}
+.dz-home .dz-h1 {
+  font-size: clamp(44px, 6vw, 80px);
+}
+.dz-lede {
+  margin: 0;
+  max-width: 680px;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--body);
+}
+.dz-doors {
+  list-style: none;
+  margin: 44px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+  gap: 16px;
+}
+.dz-door {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+  border: 1px solid var(--line);
+  text-decoration: none;
+  background: #fff;
+}
+.dz-door:hover {
+  border-color: var(--ink);
+}
+.dz-door-t {
+  font-size: 22px;
+  line-height: 1.15;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.dz-door-b {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--body);
+  flex: 1;
+}
+.dz-door-go {
+  color: var(--ink);
+}
+.dz-map {
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
+  gap: 28px;
+}
+.dz-map h2 {
+  margin: 0 0 10px;
+  font-weight: 400;
+  font-size: 11px;
+}
+.dz-map ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dz-map li {
+  padding: 4px 0;
+}
+.dz-map a {
+  text-decoration: none;
+  font-size: 15px;
+}
+.dz-map a:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+}
+
+/* ── Search palette ──────────────────────────────────────────────────────── */
+.dz-pal-back {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(11, 11, 12, 0.32);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12svh 16px 16px;
+}
+.dz-pal {
+  width: min(640px, 100%);
+  background: #fff;
+  border: 1px solid var(--ink);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.16);
+}
+.dz-pal input {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 18px 20px;
+  font: inherit;
+  font-size: 17px;
+  outline: none;
+}
+.dz-pal ul {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 52svh;
+  overflow-y: auto;
+}
+.dz-pal li button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+.dz-pal li button.on {
+  background: var(--panel);
+}
+.dz-pal li button .tag {
+  font-size: 10.5px;
+  flex: none;
+}
+.dz-pal-none {
+  padding: 14px;
+  color: var(--mute);
+}
+
+/* ── Narrow screens ──────────────────────────────────────────────────────── */
+@media (max-width: 1180px) {
+  .dz-body {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .dz-toc {
+    display: none;
+  }
+}
+@media (max-width: 860px) {
+  .dz-body {
+    grid-template-columns: 1fr;
+  }
+  .dz-side {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .dz-menu {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 var(--gutter);
+    text-align: left;
+    background: #fff;
+    border: 0;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .dz-side-in {
+    display: none;
+    position: static;
+    max-height: none;
+    padding-top: 8px;
+  }
+  .dz-side.open .dz-side-in {
+    display: block;
+  }
+  .dz-llms,
+  .dz-cta,
+  .dz-docs-tag {
+    display: none;
+  }
+  .dz-search-btn span {
+    display: none;
+  }
+  .dz-search-btn {
+    gap: 0;
+  }
+  .dz-search-btn::before {
+    content: "Search";
+    font-size: 14px;
+    margin-right: 10px;
+  }
+  .dz-main {
+    padding-top: 28px;
+  }
+  .dz-pager {
+    grid-template-columns: 1fr;
+  }
+  .dz-pg-next {
+    grid-column: 1;
+  }
+}

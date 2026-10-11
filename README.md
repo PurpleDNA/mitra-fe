@@ -1,7 +1,7 @@
 # mitra-fe
 
 The customer-facing frontend for **Mitra — the clearinghouse for agentic commerce**.
-Landing page now; the client app follows in the same Next.js project.
+Landing page and developer portal (`/docs`) now; the client app follows in the same Next.js project.
 
 The engine lives in the sibling repo [`../mitra`](../mitra).
 

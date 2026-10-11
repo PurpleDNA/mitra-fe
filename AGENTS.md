@@ -1,6 +1,7 @@
 # AGENTS.md — mitra-fe
 
-Mitra's **customer-facing frontend**: the landing page today, the client app next.
+Mitra's **customer-facing frontend**: the landing page and the developer portal (`/docs`)
+today, the client app next.
 The engine (kernel, vaults, settlement, the `forge/` control plane) lives in the
 sibling repo `../mitra`. This repo talks *about* the engine and, later, *to* it;
 it never reimplements it.
@@ -37,7 +38,29 @@ components/
   InView.tsx            sets data-inview so a section animates only on screen
   landing/<Section>.tsx + <section>.css   one file pair per section
 lib/site.ts             facts the page states about itself
+app/docs/               the developer portal: shell layout, home, [slug] pages
+lib/docs/nav.ts         portal structure: sections, pages, reader tracks
+lib/docs/render.tsx     markdown → React: GFM, KaTeX, Shiki, code tabs, link rewriting
+content/docs/           the portal's pages, COPIED from ../mitra by `npm run docs:sync`
+app/llms.txt/route.ts   serves content/llms.txt
 ```
+
+## The developer portal
+
+**The words belong to the engine repo.** `../mitra/docs/portal/NN-*.md` and
+`../mitra/docs/llms.txt` are the source; `npm run docs:sync` copies them into
+`content/` (with the engine commit in `content/docs/SOURCE.json`) and the site builds from
+the copy. Fix a page there, sync, commit here. Never edit `content/docs/` by hand.
+
+The pages were checked against the code on 2026-10-11 and much did not hold (engine
+`forge/FAILURES.md` F105, `docs/portal/CLAIMS_CHECK.md`). Until F105 is closed every
+portal page carries `site.docsDraftNotice`; set it to `null` when it is.
+
+Rendering rules: consecutive `### TypeScript` / `### Python` (or REST, Bash…) sections with
+one code block each become a language tab group, and the chosen language is remembered
+across pages. `$` before a digit is a price, not maths. Pictograph emoji are dropped from
+prose (not from code blocks, where the ASCII diagrams depend on their width). Links to
+sibling pages become `/docs/<slug>`; other relative links point at the engine repo on GitHub.
 
 The client app will go in its own route group, `app/(app)/…`, beside `(marketing)`.
 
@@ -70,6 +93,7 @@ npm install
 npm run dev        # http://localhost:3000
 npm run typecheck
 npm run build && npm start
+npm run docs:sync  # copy the portal pages from ../mitra (or $MITRA_ENGINE_DIR)
 ```
 
 ## Open
@@ -77,4 +101,6 @@ npm run build && npm start
 - `site.earlyAccessHref` points at the page's own closing section; no form or inbox
   exists yet.
 - The three-checks and clear-first diagrams have no phone-specific (vertical) layout.
-- Nav links are in-page anchors only; there are no Docs or Developers pages yet.
+- The portal has no Solana/Base/Tempo code toggle: the pages carry no per-chain samples
+  to toggle between, and inventing them would be the F105 failure again.
+- `docs/llms.txt` was not part of the claims check and will repeat the pages' errors.

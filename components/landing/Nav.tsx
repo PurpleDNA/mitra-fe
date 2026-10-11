@@ -14,6 +14,7 @@ export function Nav() {
           <a href="#functions">What it does</a>
           <a href="#checks">How it works</a>
           <a href="#clear">Clear first</a>
+          <a href="/docs">Docs</a>
         </nav>
         <a href={site.earlyAccessHref} className="btn btn-dark nav-cta">
           Get early access <span aria-hidden="true">›</span>
