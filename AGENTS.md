@@ -96,6 +96,14 @@ npm run build && npm start
 npm run docs:sync  # copy the portal pages from ../mitra (or $MITRA_ENGINE_DIR)
 ```
 
+## Deploy
+
+- GitHub: `PurpleDNA/mitra-fe` (private). Vercel: project `purple-inc/mitra-fe`, connected
+  to the repo — every push to `main` is a production deploy; other branches get previews.
+- Production: https://mitra-fe-zeta.vercel.app
+- The build needs nothing from `../mitra`: the docs are the committed copy in `content/`.
+  Run `npm run docs:sync` and commit before pushing if the engine's pages changed.
+
 ## Open
 
 - `site.earlyAccessHref` points at the page's own closing section; no form or inbox
