@@ -1,0 +1,56 @@
+.cl {
+  padding: clamp(72px, 10vw, 140px) var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+.cl > .tag {
+  margin: 0;
+}
+.cl-title {
+  margin: 0;
+  font-size: clamp(56px, 9vw, 140px);
+  line-height: 0.9;
+  font-weight: 600;
+  letter-spacing: -0.05em;
+}
+.cl-acc {
+  color: var(--accent);
+}
+.cl-p {
+  margin: 0;
+  max-width: 640px;
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.cl-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.ft {
+  border-top: 1px solid var(--line);
+}
+.ft-in {
+  padding: 28px var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.ft-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+.ft-mark {
+  width: 14px;
+  height: 14px;
+  background: var(--accent);
+  display: block;
+}

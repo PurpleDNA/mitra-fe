@@ -1,0 +1,110 @@
+.pb {
+  padding: clamp(56px, 8vw, 96px) var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.pb-top,
+.pb-foot {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.pb-title {
+  margin: 0;
+  font-size: clamp(48px, 7.2vw, 104px);
+  line-height: 0.94;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  max-width: 1240px;
+  text-wrap: balance;
+}
+.pb-lede {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.5;
+  color: var(--body);
+  max-width: 720px;
+}
+.pb-grid {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 24px;
+}
+.pb-item {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border-top: 1.5px solid var(--ink);
+  padding-top: 16px;
+}
+.pb-num {
+  font-size: 11px;
+}
+.pb-fig {
+  background-size: 12px 12px;
+  color: var(--ink);
+}
+.pb-fig svg {
+  width: 100%;
+  height: 160px;
+}
+.pb-h {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.1;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.pb-p {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.pb-foot {
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-size: 11px;
+}
+.pb-hole {
+  fill: var(--panel);
+}
+
+.pb-fly { animation: pb-fly 4s cubic-bezier(0.3, 0.7, 0.3, 1) infinite; }
+@keyframes pb-fly {
+  0% { transform: translate(-70px, 70px); opacity: 0; }
+  12% { opacity: 1; }
+  60% { transform: none; opacity: 1; }
+  85%, 100% { transform: none; opacity: 0; }
+}
+.pb-pay { animation: pb-pay 5s ease-in-out infinite; }
+@keyframes pb-pay {
+  0%, 10% { transform: translate(-56px, 16px); opacity: 0; }
+  18% { opacity: 1; }
+  50% { transform: translate(56px, -16px); opacity: 1; }
+  58%, 100% { transform: translate(56px, -16px); opacity: 0; }
+}
+.pb-gone { animation: pb-gone 5s ease-in-out infinite; }
+@keyframes pb-gone {
+  0%, 52% { opacity: 1; }
+  64%, 92% { opacity: 0.18; }
+  100% { opacity: 1; }
+}
+.pb-fee { animation: pb-fee 3s linear infinite; }
+@keyframes pb-fee {
+  0% { opacity: 0.2; }
+  10% { opacity: 1; }
+  35%, 100% { opacity: 0.2; }
+}
+.pb-q { animation: pb-q 2s steps(1, end) infinite; }
+@keyframes pb-q {
+  0% { opacity: 1; }
+  50% { opacity: 0.25; }
+  100% { opacity: 1; }
+}

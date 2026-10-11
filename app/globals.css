@@ -1,0 +1,168 @@
+/* Mitra design tokens — from the approved look board
+   (https://claude.ai/artifact/HPVbksCjwbkKtmQ5vctFp2). Light theme only, by decision. */
+:root {
+  --ink: #0b0b0c;
+  --paper: #ffffff;
+  --panel: #f5f5f3;
+  --line: #e4e4df;
+  --line-2: #cfcfc9;
+  --dot: #d9d9d3;
+  --mute: #5f5f5a;
+  --body: #2b2b29;
+  --side: #f1f1ee;
+  /* One accent. Red means "stopped" and nothing else. */
+  --accent: #2b4bff;
+  --accent-tint: color-mix(in srgb, var(--accent) 16%, #fff);
+  --stop: #e0341c;
+  --stop-text: #b8260f;
+  --gutter: clamp(16px, 4vw, 48px);
+  --maxw: 1440px;
+  --sans: var(--font-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --mono: var(--font-mono), ui-monospace, Menlo, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+.mono {
+  font-family: var(--mono);
+}
+
+/* Small uppercase mono label, the board's [ TAG ] voice. */
+.tag {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.wrap {
+  width: 100%;
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+
+.dots {
+  background-color: var(--panel);
+  background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+  background-size: 14px 14px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 22px;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--ink);
+  transition: background 0.2s, color 0.2s;
+}
+.btn-dark {
+  background: var(--ink);
+  color: #fff;
+}
+.btn-dark:hover {
+  background: #2a2a2c;
+}
+.btn-line {
+  background: #fff;
+  color: var(--ink);
+}
+.btn-line:hover {
+  background: var(--panel);
+}
+.btn:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Isometric figure kit, shared by every figure on the page. */
+.fig-face { fill: #fff; stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.fig-side { fill: var(--side); stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.fig-tint { fill: var(--accent-tint); stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; }
+.fig-ln { fill: none; stroke: var(--ink); stroke-width: 1.2; stroke-linejoin: round; stroke-linecap: round; }
+.fig-guide { fill: none; stroke: #a9a9a2; stroke-width: 1.2; stroke-dasharray: 4 4; }
+.fig-lead { fill: none; stroke: var(--ink); stroke-width: 1; }
+.fig-acc { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.fig-lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; fill: var(--ink); }
+.fig-sm { font-size: 9.5px; fill: var(--mute); }
+
+/* Corner brackets that frame a figure (four L's, never a full box). */
+.brackets { position: relative; }
+.brackets > .bk {
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 0 solid var(--ink);
+  pointer-events: none;
+}
+.brackets > .bk.tl { left: 0; top: 0; border-top-width: 1.5px; border-left-width: 1.5px; }
+.brackets > .bk.tr { right: 0; top: 0; border-top-width: 1.5px; border-right-width: 1.5px; }
+.brackets > .bk.bl { left: 0; bottom: 0; border-bottom-width: 1.5px; border-left-width: 1.5px; }
+.brackets > .bk.br { right: 0; bottom: 0; border-bottom-width: 1.5px; border-right-width: 1.5px; }
+
+/* Sections animate only while on screen. <InView> sets data-inview; until it
+   hydrates the attribute is absent and everything runs, so no-JS still works. */
+[data-inview="false"],
+[data-inview="false"] * {
+  animation-play-state: paused !important;
+}
+
+/* Reduced motion: every animated piece's resting style is its finished state. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

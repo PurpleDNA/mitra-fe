@@ -1,0 +1,191 @@
+.chk {
+  padding: clamp(56px, 8vw, 96px) var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  border-bottom: 1px solid var(--line);
+}
+.chk-top {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.chk-eyebrow {
+  margin: 0;
+}
+.chk-run {
+  margin: 0;
+  display: grid;
+  color: var(--ink);
+  text-align: right;
+}
+.chk-run > span {
+  grid-area: 1 / 1;
+}
+.chk-s2 {
+  color: var(--stop-text);
+  opacity: 0;
+  animation: chk-s2 14s steps(1, end) infinite;
+}
+.chk-s1 {
+  animation: chk-s1 14s steps(1, end) infinite;
+}
+@keyframes chk-s1 { 0% { opacity: 1; } 49% { opacity: 0; } 100% { opacity: 0; } }
+@keyframes chk-s2 { 0% { opacity: 0; } 49% { opacity: 1; } 100% { opacity: 1; } }
+.chk-title {
+  margin: 0;
+  font-size: clamp(44px, 6.4vw, 92px);
+  line-height: 0.95;
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+.chk-lede {
+  margin: 0;
+  max-width: 720px;
+  font-size: 20px;
+  line-height: 1.45;
+  color: var(--body);
+}
+
+/* On phones the diagram keeps its proportions and scrolls sideways in its own box. */
+.chk-scroll {
+  overflow-x: auto;
+  margin: 8px calc(var(--gutter) * -1) 0;
+  padding: 0 var(--gutter);
+}
+.chk-svg {
+  width: 100%;
+  min-width: 880px;
+  height: auto;
+  overflow: visible;
+}
+
+.chk-arrow { stroke: var(--ink); stroke-width: 2; }
+.chk-no { fill: none; stroke: var(--stop); stroke-width: 2; stroke-dasharray: 6 6; }
+.chk-no-head { stroke: var(--stop); stroke-width: 2; }
+.chk-ink { fill: var(--ink); }
+.chk-card { fill: #fff; stroke: var(--ink); stroke-width: 1.5; }
+.chk-card-t { font-family: var(--sans); font-size: 17px; font-weight: 500; fill: var(--ink); }
+.chk-strong { font-weight: 600; }
+.chk-dia-t { font-family: var(--sans); font-size: 14px; font-weight: 600; fill: #fff; }
+.chk-paid { fill: var(--accent); }
+.chk-paid-t { font-family: var(--sans); font-size: 17px; font-weight: 600; fill: #fff; }
+.chk-paid-s { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; fill: #fff; }
+.chk-end { fill: #fff; stroke: var(--ink); stroke-width: 2; }
+.chk-stop { fill: #fff; stroke: var(--stop); stroke-width: 2; }
+.chk-stop-sq { fill: var(--stop); }
+.chk-mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; fill: var(--ink); }
+.chk-mute { fill: var(--mute); }
+.chk-yes { font-family: var(--sans); font-size: 13px; fill: var(--mute); }
+.chk-no-t { font-family: var(--sans); font-size: 13px; fill: var(--stop-text); }
+.chk-chg { fill: var(--stop-text); opacity: 0; animation: chk-chg 14s ease-out infinite; }
+.chk-ring { fill: none; stroke-width: 6; opacity: 0; }
+.chk-ring-paid { stroke: color-mix(in srgb, var(--accent) 30%, transparent); animation: chk-ring-paid 14s ease-out infinite; }
+.chk-ring-stop { stroke: rgba(224, 52, 28, 0.25); animation: chk-ring-stop 14s ease-out infinite; }
+.chk-dot-ring { fill: #fff; stroke: var(--ink); stroke-width: 1; }
+.chk-dot-c { fill: var(--accent); animation: chk-dot-c 14s linear infinite; }
+.chk-dot { opacity: 0; animation: chk-dot 14s linear infinite; }
+
+/* The dot waits at each check's gate, just left of the diamond, so it never
+   covers the question; it only passes through on its way to the next gate. */
+@keyframes chk-dot {
+  0% { transform: translate(80px, 430px); opacity: 0; }
+  2% { transform: translate(80px, 430px); opacity: 1; }
+  5% { transform: translate(244px, 430px); }
+  8%, 11% { transform: translate(404px, 430px); }
+  13% { transform: translate(612px, 430px); }
+  16%, 19% { transform: translate(652px, 430px); }
+  21% { transform: translate(860px, 430px); }
+  24%, 27% { transform: translate(900px, 430px); }
+  29% { transform: translate(1108px, 430px); }
+  34%, 44% { transform: translate(1256px, 430px); opacity: 1; }
+  46% { transform: translate(1256px, 430px); opacity: 0; }
+  48%, 50% { transform: translate(80px, 430px); opacity: 0; }
+  52% { transform: translate(80px, 430px); opacity: 1; }
+  55% { transform: translate(244px, 430px); }
+  58%, 61% { transform: translate(404px, 430px); }
+  63% { transform: translate(612px, 430px); }
+  66%, 69% { transform: translate(652px, 430px); }
+  71% { transform: translate(860px, 430px); }
+  74%, 77% { transform: translate(900px, 430px); }
+  79% { transform: translate(1004px, 430px); }
+  82% { transform: translate(1004px, 620px); }
+  85% { transform: translate(756px, 620px); }
+  88%, 96% { transform: translate(756px, 720px); opacity: 1; }
+  98%, 100% { transform: translate(756px, 720px); opacity: 0; }
+}
+@keyframes chk-dot-c {
+  0%, 74% { fill: var(--accent); }
+  76%, 98% { fill: var(--stop); }
+  100% { fill: var(--accent); }
+}
+@keyframes chk-chg {
+  0%, 73% { opacity: 0; }
+  75%, 96% { opacity: 1; }
+  98%, 100% { opacity: 0; }
+}
+@keyframes chk-ring-paid {
+  0%, 33% { opacity: 0; }
+  35% { opacity: 1; }
+  46%, 100% { opacity: 0; }
+}
+@keyframes chk-ring-stop {
+  0%, 87% { opacity: 0; }
+  89% { opacity: 1; }
+  99%, 100% { opacity: 0; }
+}
+
+.chk-below {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+.chk-note {
+  margin: 0;
+  max-width: 440px;
+  padding: 18px 40px 18px 20px;
+  background: var(--panel);
+  clip-path: polygon(0 0, calc(100% - 24px) 0, 100% 24px, 100% 100%, 0 100%);
+  font-size: 15px;
+  line-height: 1.45;
+}
+.chk-legend {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 24px;
+  font-size: 11px;
+}
+.chk-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chk-key {
+  width: 10px;
+  height: 10px;
+  display: block;
+}
+.chk-key-pay { border-radius: 50%; background: var(--accent); }
+.chk-key-stop { border-radius: 50%; background: var(--stop); }
+.chk-key-check { background: var(--ink); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.chk-foot {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-size: 11px;
+}
+
+/* Reduced motion: show the dot resting on Paid. */
+@media (prefers-reduced-motion: reduce) {
+  .chk-dot { opacity: 1; transform: translate(1256px, 430px); }
+  .chk-s2 { opacity: 0; }
+}
