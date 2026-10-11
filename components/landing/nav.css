@@ -18,17 +18,18 @@
 .nav-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
   font-size: 23px;
   font-weight: 600;
   letter-spacing: -0.03em;
 }
 .nav-mark {
-  width: 18px;
-  height: 18px;
-  background: var(--accent);
+  width: 24px;
+  height: 24px;
+  flex: none;
   display: block;
+  transform: translateY(1px);
 }
 .nav-links {
   display: flex;

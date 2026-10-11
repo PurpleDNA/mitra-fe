@@ -1,3 +1,4 @@
+import { Mark } from "@/components/Mark";
 import { RiseTitle } from "@/components/RiseTitle";
 import { site } from "@/lib/site";
 import "./closing.css";
@@ -21,7 +22,7 @@ export function Closing() {
       <footer className="ft">
         <div className="ft-in wrap">
           <span className="ft-logo">
-            <span className="ft-mark" aria-hidden="true" />
+            <Mark compact className="ft-mark" />
             mitra
           </span>
           <span className="tag">[ {site.networkStatus} ]</span>

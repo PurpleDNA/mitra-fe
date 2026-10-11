@@ -26,6 +26,11 @@ https://claude.ai/artifact/HPVbksCjwbkKtmQ5vctFp2 — and its brief,
 `../mitra/Mitra inspo/LOOK_BOARD_PROMPT.md`. Positioning: Mitra is a clearinghouse
 (think DTCC / NIBSS), not an agent wallet. Headline: **"Agents trade. Mitra clears."**
 
+The logo ("Bound", approved 2026-10-11): https://claude.ai/artifact/Jpw5VHLrcHGAa8otoLL5GQ.
+Corner brackets (the mandate), a pale vault diamond (`--accent-tint`) and a blue core
+(`--accent`), on a 48-unit grid. Only the core is ever blue, and red never appears in it.
+Below 24px use the compact mark (no vault).
+
 ## Layout
 
 ```
@@ -33,11 +38,17 @@ app/
   layout.tsx            fonts (Geist, Geist Mono), metadata
   globals.css           tokens, buttons, figure kit (.fig-*), brackets, motion gating
   (marketing)/page.tsx  the landing page, section by section
-  icon.svg
+  icon.svg              favicon: the compact mark, brackets turn white in dark mode
+  apple-icon.png        180px touch icon
+  opengraph-image.png   link preview (1200×630) + opengraph-image.alt.txt
 components/
+  Mark.tsx              the logo mark, inline SVG coloured by the site tokens
   InView.tsx            sets data-inview so a section animates only on screen
   landing/<Section>.tsx + <section>.css   one file pair per section
 lib/site.ts             facts the page states about itself
+public/brand/           logo source files: mark (primary, compact, display, reverse, on-accent),
+                        lockups (horizontal, stacked, reverse, on-accent), bracketed wordmark.
+                        The wordmark is Geist SemiBold outlined, tracking −4.5%.
 app/docs/               the developer portal: shell layout, home, [slug] pages
 lib/docs/nav.ts         portal structure: sections, pages, reader tracks
 lib/docs/render.tsx     markdown → React: GFM, KaTeX, Shiki, code tabs, link rewriting

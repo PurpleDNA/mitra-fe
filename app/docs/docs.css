@@ -25,17 +25,18 @@
 .dz-logo {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
   font-size: 22px;
   font-weight: 600;
   letter-spacing: -0.03em;
 }
 .dz-mark {
-  width: 16px;
-  height: 16px;
-  background: var(--accent);
+  width: 24px;
+  height: 24px;
+  flex: none;
   display: block;
+  transform: translateY(1px);
 }
 .dz-docs-tag {
   text-decoration: none;

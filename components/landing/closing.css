@@ -49,8 +49,9 @@
   letter-spacing: -0.03em;
 }
 .ft-mark {
-  width: 14px;
-  height: 14px;
-  background: var(--accent);
+  width: 20px;
+  height: 20px;
+  flex: none;
   display: block;
+  transform: translateY(1px);
 }

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import "katex/dist/katex.min.css";
 import "./docs.css";
+import { Mark } from "@/components/Mark";
 import { Sidebar } from "@/components/docs/Sidebar";
 import { Search } from "@/components/docs/Search";
 import { searchIndex } from "@/lib/docs/render";
@@ -19,7 +20,7 @@ export default async function DocsLayout({ children }: { children: React.ReactNo
       <header className="dz-top">
         <div className="dz-top-in">
           <Link href="/" className="dz-logo" aria-label="Mitra home">
-            <span className="dz-mark" aria-hidden="true" />
+            <Mark className="dz-mark" />
             <span>mitra</span>
           </Link>
           <Link href="/docs" className="tag dz-docs-tag">

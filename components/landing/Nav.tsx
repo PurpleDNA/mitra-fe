@@ -1,3 +1,4 @@
+import { Mark } from "@/components/Mark";
 import { site } from "@/lib/site";
 import "./nav.css";
 
@@ -6,7 +7,7 @@ export function Nav() {
     <header className="nav">
       <div className="nav-in wrap">
         <a href="#top" className="nav-logo" aria-label="Mitra, back to top">
-          <span className="nav-mark" aria-hidden="true" />
+          <Mark className="nav-mark" />
           <span>mitra</span>
         </a>
         <nav className="nav-links" aria-label="Sections">
