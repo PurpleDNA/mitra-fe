@@ -144,8 +144,12 @@ npm run docs:sync  # copy the portal pages from ../mitra (or $MITRA_ENGINE_DIR)
 
 ## Open
 
-- `site.earlyAccessHref` points at the page's own closing section; no form or inbox
-  exists yet.
+- **The early-access list saves nothing yet.** `/early-access` is the sign-up form every
+  "Request early access" button leads to, but `lib/signups.ts` returns a stand-in store
+  (`saves: false`), by decision. The form says "Preview — sign-ups aren't saved yet" and
+  the confirmation tells the visitor nothing was kept. To make it real, implement
+  `SignupStore` and return it from `signupStore()`; the page switches to "You're on the
+  list" by itself. Never set `saves: true` on anything that does not durably store.
 - The portal has no Solana/Base/Tempo code toggle: the pages carry no per-chain samples
   to toggle between, and inventing them would be the F105 failure again.
 - `docs/llms.txt` was not part of the claims check and will repeat the pages' errors.

@@ -3,8 +3,8 @@
  * claim more than the engine has demonstrated (see ../mitra/forge/PROOF_LEDGER.md).
  */
 export const site = {
-  /** No early-access destination exists yet. Point this at the real form or inbox. */
-  earlyAccessHref: "/#early-access",
+  /** The sign-up page. Its list is a stand-in until a store is connected (lib/signups.ts). */
+  earlyAccessHref: "/early-access",
   /** Every live run so far is on test networks. Update only with new evidence. */
   networkStatus: "Running on test networks · Base · Solana · Tempo",
   /** Where the engine's source lives; docs link to files there. */
