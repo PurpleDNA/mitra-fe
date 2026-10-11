@@ -100,7 +100,6 @@ npm run docs:sync  # copy the portal pages from ../mitra (or $MITRA_ENGINE_DIR)
 
 - `site.earlyAccessHref` points at the page's own closing section; no form or inbox
   exists yet.
-- The three-checks and clear-first diagrams have no phone-specific (vertical) layout.
 - The portal has no Solana/Base/Tempo code toggle: the pages carry no per-chain samples
   to toggle between, and inventing them would be the F105 failure again.
 - `docs/llms.txt` was not part of the claims check and will repeat the pages' errors.
