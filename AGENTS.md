@@ -79,6 +79,12 @@ For the people behind the agents: they fund a vault, give agents limits, watch p
 step in, and see what cleared. Agents never use it; they use the SDK, API or MCP.
 Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
 
+- **The app is early access.** `proxy.ts` sends every `/app` request without the access
+  cookie to `/access`, which takes a shared code (`MITRA_EARLY_ACCESS_CODE`, set in Vercel
+  for production and preview, and in `.env.local` for dev). The cookie holds a keyed hash of
+  the code, so changing the code locks everyone out. Unset, the gate admits nobody. It is a
+  gate, not authentication; real sign-in replaces it when the engine has accounts. Nothing
+  public links to `/app`.
 - Routes are `/app/<workspace>/…`. `/app` sends a new arrival to `/app/new`.
 - **Two workspaces today, and why.** The engine has no customer accounts (no
   organisations, sign-in or per-customer keys), so the app cannot know who a user is.
