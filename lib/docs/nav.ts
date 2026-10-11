@@ -1,5 +1,5 @@
 /**
- * The portal's structure (DEVELOPER_PORTAL_SPEC.md §3). Page files live in
+ * The portal's structure (DEVELOPER_PORTAL_SPEC.md §3, now 18 pages). Page files live in
  * content/docs, copied from the engine repo by `npm run docs:sync`.
  */
 
@@ -69,6 +69,8 @@ export const SECTIONS: { title: string; pages: DocPage[] }[] = [
     pages: [
       { slug: "mcp-gateway", file: "15-mcp-gateway.md", nav: "MCP gateway", section: "Integration", tracks: ["agents"] },
       { slug: "agent-skills-and-tooling", file: "16-agent-skills-and-tooling.md", nav: "Skills & tooling", section: "Integration", tracks: ["agents"] },
+      { slug: "marketplace-interoperability", file: "17-marketplace-interoperability.md", nav: "Marketplaces", section: "Integration", tracks: ["agents", "integrators"] },
+      { slug: "frameworks-and-protocols", file: "18-ecosystem-frameworks-and-protocols.md", nav: "Frameworks & protocols", section: "Integration", tracks: ["agents", "integrators"] },
     ],
   },
 ];

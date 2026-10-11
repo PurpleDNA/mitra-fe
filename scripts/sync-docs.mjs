@@ -8,7 +8,7 @@
  * from, so a deploy never depends on a sibling checkout being present.
  */
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdirSync, readdirSync, rmSync, writeFileSync, existsSync } from "node:fs";
+import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 
 const engine = path.resolve(process.env.MITRA_ENGINE_DIR ?? "../mitra");
@@ -41,3 +41,11 @@ try {
 }
 writeFileSync(path.join(out, "SOURCE.json"), JSON.stringify({ engineCommit: commit, pages: pages.length }, null, 2) + "\n");
 console.log(`[docs:sync] ${pages.length} pages from ${engine} @ ${commit}`);
+
+// A page the portal's nav does not list would be built but unreachable from the sidebar.
+const nav = readFileSync(path.resolve("lib/docs/nav.ts"), "utf8");
+const unlisted = pages.filter((f) => !nav.includes(`"${f}"`));
+if (unlisted.length > 0) {
+  console.warn(`[docs:sync] not in lib/docs/nav.ts yet, add them: ${unlisted.join(", ")}`);
+  process.exitCode = 1;
+}
