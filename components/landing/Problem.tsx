@@ -119,7 +119,6 @@ export function Problem() {
     <InView className="pb wrap" id="problem" aria-labelledby="problem-title">
       <div className="pb-top tag">
         <span>[ The problem ] · Why Mitra</span>
-        <span>[ Intent ≠ Capital ]</span>
       </div>
       <RiseTitle id="problem-title" className="pb-title" text="An agent with a wallet is a blank cheque." />
       <p className="pb-lede">Today, people give an AI agent a funded wallet and hope for the best. Four things go wrong.</p>

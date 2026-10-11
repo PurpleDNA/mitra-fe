@@ -126,11 +126,6 @@
   flex-wrap: wrap;
   gap: 12px;
 }
-.hero-net {
-  margin: 0;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-}
 
 /* Figure motion: builds once, then the chips flow forever. */
 .hero-floor { fill: none; stroke: var(--line-2); stroke-width: 1; stroke-dasharray: 3 4; }

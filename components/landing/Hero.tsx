@@ -163,7 +163,6 @@ export function Hero() {
             Get early access <span aria-hidden="true">›</span>
           </a>
         </div>
-        <p className="tag hero-net">[ {site.networkStatus} ]</p>
       </aside>
     </InView>
   );
