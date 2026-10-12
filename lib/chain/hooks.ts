@@ -66,6 +66,8 @@ export interface SavedAgent {
   name: string;
   address: `0x${string}`;
   addedAt: string;
+  /** What the agent may pay for. Engine policy, not vault state: see AgentsLive. */
+  capabilities?: string[];
 }
 
 const agentsKey = (principal: string) => `mitra:agents:${chain.id}:${principal.toLowerCase()}`;
@@ -127,7 +129,15 @@ export function useSavedAgents(principal?: `0x${string}`) {
     [principal, save],
   );
 
-  return { agents, loaded, add, remove };
+  const update = useCallback(
+    (address: string, patch: Partial<Omit<SavedAgent, "address" | "addedAt">>) => {
+      if (!principal) return;
+      save(readAgents(principal).map((x) => (x.address.toLowerCase() === address.toLowerCase() ? { ...x, ...patch } : x)));
+    },
+    [principal, save],
+  );
+
+  return { agents, loaded, add, remove, update };
 }
 
 export interface ChainMandate {
@@ -171,16 +181,39 @@ export type TxState =
   | { status: "signing"; label: string }
   | { status: "pending"; label: string; hash: `0x${string}` }
   | { status: "done"; label: string; hash: `0x${string}` }
-  | { status: "failed"; label: string; error: string; hash?: `0x${string}` };
+  | { status: "failed"; label: string; error: string; code?: string; hash?: `0x${string}` };
+
+/**
+ * What a contract refusal means, in words. The code itself is kept for the audit
+ * details: the plain sentence is for the person, the code is the evidence.
+ */
+export const PLAIN: Record<string, string> = {
+  INSUFFICIENT_AVAILABLE: "There isn’t that much free in the vault. Money held for payments can’t be withdrawn.",
+  VAULT_EMERGENCY_FROZEN: "The vault is paused. Resume it first.",
+  VAULT_FROZEN: "The vault is paused. Resume it first.",
+  MANDATE_ALREADY_EXISTS: "This agent’s wallet already has limits from you. Limits can’t be reopened for the same wallet.",
+  EXCEEDS_MANDATE_CEILING: "The per-payment cap must be above zero and no bigger than the budget.",
+  INVALID_EXPIRY: "The end date must be in the future.",
+  INVALID_POLICY_ENGINE: "No policy engine was named.",
+  UNAUTHORIZED_PRINCIPAL: "Only the wallet that set these limits can change them.",
+  UNAUTHORIZED: "Only you or the agent can revoke these limits.",
+  MANDATE_REVOKED: "These limits were revoked and can’t be changed.",
+  ALREADY_REVOKED: "These limits are already revoked.",
+  MANDATE_EXPIRED: "These limits have ended and can’t be changed.",
+  INVALID_AMOUNT: "Enter an amount above zero.",
+};
 
 /** The contract's own revert reason where there is one, so the screen says what the chain said. */
-export function txError(e: unknown): string {
+export function txError(e: unknown): { error: string; code?: string } {
   if (e instanceof BaseError) {
     const revert = e.walk((x) => x instanceof ContractFunctionRevertedError);
-    if (revert instanceof ContractFunctionRevertedError) return revert.reason ?? revert.shortMessage;
-    return e.shortMessage;
+    if (revert instanceof ContractFunctionRevertedError && revert.reason) {
+      return { error: PLAIN[revert.reason] ?? revert.reason, code: revert.reason };
+    }
+    if (/user rejected|denied/i.test(e.shortMessage)) return { error: "You declined it in your wallet. Nothing was sent." };
+    return { error: e.shortMessage };
   }
-  return e instanceof Error ? e.message : String(e);
+  return { error: e instanceof Error ? e.message : String(e) };
 }
 
 /**
@@ -210,7 +243,7 @@ export function useTx() {
         setState({ status: "done", label, hash: hash! });
         return true;
       } catch (e) {
-        setState({ status: "failed", label, hash, error: txError(e) });
+        setState({ status: "failed", label, hash, ...txError(e) });
         return false;
       }
     },

@@ -1132,3 +1132,338 @@
 .lv-steps button.ap-btn {
   align-self: flex-start;
 }
+
+/* Transaction line + audit drawer. */
+.lv-tx p {
+  margin: 0;
+}
+.lv-audit {
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+}
+.lv-audit summary {
+  cursor: pointer;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  width: max-content;
+}
+.lv-audit dl {
+  margin: 8px 0 0;
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--panel);
+}
+.lv-audit dl div {
+  display: grid;
+  grid-template-columns: minmax(110px, max-content) 1fr;
+  gap: 12px;
+}
+.lv-audit dt {
+  color: var(--mute);
+}
+.lv-audit dd {
+  margin: 0;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+/* Vault gauge. */
+.lv-gauge {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.lv-gauge-bar {
+  display: flex;
+  height: 10px;
+  background: var(--panel);
+}
+.lv-gauge-bar span,
+.lv-gauge-key i {
+  display: block;
+}
+.lv-gauge-bar .free,
+.lv-gauge-key i.free {
+  background: var(--accent);
+}
+.lv-gauge-bar .held,
+.lv-gauge-key i.held {
+  background: var(--accent-tint);
+}
+.lv-gauge-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 20px;
+}
+.lv-gauge-key span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.lv-gauge-key i {
+  width: 10px;
+  height: 10px;
+}
+
+/* Spend card. */
+.lv-sc {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.lv-sc-face {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 22px 24px;
+  background: var(--panel);
+  max-width: 560px;
+}
+.lv-sc-face::before,
+.lv-sc-face::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 0 solid var(--ink);
+}
+.lv-sc-face::before { left: 0; top: 0; border-top-width: 2px; border-left-width: 2px; }
+.lv-sc-face::after { right: 0; bottom: 0; border-bottom-width: 2px; border-right-width: 2px; }
+.lv-sc.revoked .lv-sc-face,
+.lv-sc.expired .lv-sc-face {
+  opacity: 0.6;
+}
+.lv-sc-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.lv-sc-who h3 {
+  margin: 0 0 4px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.lv-sc-who a {
+  text-decoration: none;
+}
+.lv-sc-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lv-sc-left {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+.lv-bar {
+  height: 6px;
+  background: #fff;
+}
+.lv-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.lv-sc-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px 16px;
+}
+.lv-sc-facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lv-sc-facts dd {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+.lv-sc-caps {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.lv-sc-caps .tag {
+  margin-right: 4px;
+}
+.lv-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--line-2);
+  background: #fff;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--ink);
+}
+.lv-chip.on {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+.lv-chip button {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  color: var(--mute);
+}
+.lv-chip-btn {
+  cursor: pointer;
+  min-height: 32px;
+}
+.lv-sc-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.lv-sc-tabs > button:not(.lv-link) {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--line-2);
+  background: #fff;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+}
+.lv-sc-tabs > button[aria-pressed="true"] {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.lv-sc-tabs .lv-revoke {
+  border-color: var(--ink);
+}
+.lv-sc-gap {
+  flex: 1;
+}
+.lv-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: var(--panel);
+}
+.lv-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.lv-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  min-height: 44px;
+  border: 1px solid var(--line-2);
+  background: #fff;
+}
+.lv-tags:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+.lv-tags input {
+  flex: 1;
+  min-width: 180px;
+  border: 0;
+  outline: 0;
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 4px;
+  background: none;
+}
+.lv-verdict {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 18px;
+  background: #fff;
+  border: 1px solid var(--accent);
+  border-left-width: 4px;
+}
+.lv-verdict.stop {
+  border-color: var(--stop);
+}
+.lv-verdict-h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.lv-verdict-t {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.lv-verdict.stop .lv-verdict-t {
+  color: var(--stop-text);
+}
+.lv-verdict ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  color: var(--body);
+}
+.lv-snip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.lv-snip-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.lv-snip .ap-code {
+  margin: 0;
+  max-height: 280px;
+  overflow: auto;
+}
+.lv-copy {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid var(--ink);
+  background: #fff;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+@media (max-width: 560px) {
+  .lv-sc-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .lv-sc-face {
+    padding: 18px;
+  }
+  .lv-sc-gap {
+    display: none;
+  }
+}

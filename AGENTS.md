@@ -106,6 +106,21 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
     `NEXT_PUBLIC_MITRA_POLICY_ENGINE`). Expired or revoked limits cannot be reopened for
     the same wallet (the contract refuses `MANDATE_ALREADY_EXISTS`), and the screen says so.
   - "Pause all" is `setEmergencyFreeze` on the user's vault position.
+  - Each agent is a **spend card** (`components/app/live/AgentCard.tsx`): headroom, cap,
+    end date, version, capabilities, and four panels: limits, capabilities, Try it, Connect.
+  - **Capabilities are engine policy, not vault state.** Preset chips plus typed tags, kept
+    with the agent in `localStorage`; they fill the engine-mandate snippet in Connect.
+    Empty means the engine's default (`payment`, `research`).
+  - **Try it is a dry run** (`lib/chain/dryrun.ts`): it evaluates a pretend request against
+    the agent's real on-chain limits and vault, with the exact codes the vault contract and
+    engine use. It signs and sends nothing, says so on screen, and never shows the third
+    check (exact match) as passed, because only a real signed payment reaches it. Never
+    animate a dry run into "settled".
+  - "Change limits" (`amendMandate`) bumps the version but does **not** cancel permits
+    already issued: the contract accepts any version up to the current one. Only Revoke
+    does. The form says so; keep it that way.
+  - Contract refusals are shown in plain English (`PLAIN` in `lib/chain/hooks.ts`) with the
+    raw code in an "Audit details" drawer.
   - Only a receipt with status `success` is shown as confirmed; failures show the revert reason.
 - **Known gap: the engine does not yet pay from a vault opened here.** Its vault rail
   (`../mitra/lib/settlement/rails.ts`) pays from the principal it was started with (its

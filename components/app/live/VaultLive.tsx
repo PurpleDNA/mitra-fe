@@ -91,6 +91,8 @@ function VaultPanel() {
         </div>
       </div>
 
+      {position && position.total > 0n ? <Gauge free={position.available} held={held} /> : null}
+
       {position?.emergencyFreeze ? (
         <p className="lv-note stop">
           <span className="ap-dot-stop" aria-hidden="true" /> This vault is paused. No agent payment can leave it and withdrawals are
@@ -181,5 +183,28 @@ function VaultPanel() {
         </div>
       </dl>
     </>
+  );
+}
+
+/** Where the vault's money is, as one bar: free to spend, and held for payments in flight. */
+function Gauge({ free, held }: { free: bigint; held: bigint }) {
+  const total = free + held;
+  const pct = (x: bigint) => (total > 0n ? Number((x * 1000n) / total) / 10 : 0);
+  return (
+    <div className="lv-gauge">
+      <div className="lv-gauge-bar" role="img" aria-label={`${pct(free)}% free to spend, ${pct(held)}% held`}>
+        <span className="free" style={{ width: `${pct(free)}%` }} />
+        <span className="held" style={{ width: `${pct(held)}%` }} />
+      </div>
+      <div className="lv-gauge-key ap-meta">
+        <span>
+          <i className="free" /> Free {pct(free)}%
+        </span>
+        <span>
+          <i className="held" /> Held {pct(held)}%
+        </span>
+        <span>Read from the vault contract, to the last unit.</span>
+      </div>
+    </div>
   );
 }

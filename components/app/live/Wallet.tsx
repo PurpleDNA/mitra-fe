@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useSwitchChain } from "wagmi";
 import { chain, explorerTx } from "@/lib/chain/config";
 import { usePrincipal, type TxState } from "@/lib/chain/hooks";
@@ -85,8 +85,50 @@ export function TxLine({ state }: { state: TxState }) {
     failed: `${state.label} failed: ${"error" in state ? state.error : ""}`,
   }[state.status];
   return (
-    <p className={`lv-tx ${state.status}`} role="status">
-      {text} {link}
-    </p>
+    <div className={`lv-tx ${state.status}`} role="status">
+      <p>
+        {text} {link}
+      </p>
+      {state.status === "failed" && state.code ? <Audit rows={[["Contract reason", state.code]]} /> : null}
+    </div>
+  );
+}
+
+/** The evidence behind a plain-English line, folded away until someone asks for it. */
+export function Audit({ rows, label = "Audit details" }: { rows: [string, ReactNode][]; label?: string }) {
+  return (
+    <details className="lv-audit">
+      <summary>{label}</summary>
+      <dl>
+        {rows.map(([k, v]) => (
+          <div key={k}>
+            <dt>{k}</dt>
+            <dd className="mono">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  );
+}
+
+/** Copies text, and says so for a moment. */
+export function CopyButton({ text, label = "Copy" }: { text: string; label?: string }) {
+  const [done, setDone] = useState(false);
+  return (
+    <button
+      type="button"
+      className="lv-copy"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setDone(true);
+          setTimeout(() => setDone(false), 1600);
+        } catch {
+          // Clipboard blocked: the text is still on screen to select by hand.
+        }
+      }}
+    >
+      {done ? "Copied" : label}
+    </button>
   );
 }
