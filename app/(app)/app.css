@@ -1549,3 +1549,15 @@
     display: none;
   }
 }
+.lv-wallet {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.lv-net {
+  text-transform: none;
+  letter-spacing: 0;
+}
+div.lv-hint p {
+  margin: 0 0 8px;
+}

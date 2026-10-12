@@ -22,7 +22,7 @@ export default async function Activity({ params }: { params: Promise<{ ws: strin
           <h1>Your agents haven’t asked to pay for anything yet.</h1>
           <p>
             This page fills up the moment they do: every payment an agent asks for, the three checks it went through, and
-            what Mitra did with it. Five steps get you there, all on Base Sepolia with test money.
+            what Mitra did with it. Five steps get you there, on Base Sepolia or Tempo Moderato, with test money.
           </p>
         </div>
         <StepsLive ws={w.slug} />

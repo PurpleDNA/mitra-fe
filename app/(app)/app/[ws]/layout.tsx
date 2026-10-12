@@ -34,7 +34,7 @@ export default async function AppLayout({ children, params }: { children: React.
                 <span className="ap-demo">Demo data</span> Example workspace. Nothing here moves money.
               </>
             ) : (
-              <>{w.name} · Base Sepolia, a test network. Every action here is a real transaction from your wallet.</>
+              <>{w.name} · Test networks. Every action is a real transaction from your wallet.</>
             )}
           </p>
           <div className="ap-actions">
@@ -46,6 +46,13 @@ export default async function AppLayout({ children, params }: { children: React.
               <PauseAll />
             )}
             <WalletButton />
+            {account ? (
+              <form action="/auth/signout" method="post">
+                <button type="submit" className="btn btn-line ap-btn" title={`Signed in as ${account.label}`}>
+                  Sign out
+                </button>
+              </form>
+            ) : null}
           </div>
         </header>
         <main className="ap-body">{children}</main>

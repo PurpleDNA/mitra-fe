@@ -18,7 +18,7 @@ const wallet = privateKeyToAccount(process.env.AGENT_KEY as \`0x\${string}\`);
 const mitra = new MitraClient({
   baseUrl: "http://localhost:3005",   // the engine's API root
   agentId: "agent_research",
-  chainId: 84532,                     // Base Sepolia
+  chainId: 84532,                     // Base Sepolia; Tempo Moderato is 42431
   signer: { address: wallet.address, signTypedData: (t) => wallet.signTypedData(t) },
 });
 

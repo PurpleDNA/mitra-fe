@@ -3,7 +3,7 @@
 import { ConnectButton, useConnectModal } from "@rainbow-me/rainbowkit";
 import { useState, type ReactNode } from "react";
 import { useSwitchChain } from "wagmi";
-import { chain, explorerTx } from "@/lib/chain/config";
+import { NETWORKS } from "@/lib/chain/config";
 import { usePrincipal, type TxState } from "@/lib/chain/hooks";
 
 const short = (a: string) => `${a.slice(0, 6)}…${a.slice(-4)}`;
@@ -25,15 +25,20 @@ export function WalletButton() {
         if (current.unsupported) {
           return (
             <button type="button" className="btn btn-line ap-btn" onClick={openChainModal}>
-              Switch to {chain.name}
+              Switch network
             </button>
           );
         }
         return (
-          <button type="button" className="btn btn-line ap-btn lv-acct" onClick={openAccountModal}>
-            <span className="lv-dot" aria-hidden="true" />
-            <span className="mono">{account.displayName}</span>
-          </button>
+          <span className="lv-wallet">
+            <button type="button" className="btn btn-line ap-btn lv-net" onClick={openChainModal} title="Change network">
+              {current.name} <span aria-hidden="true">▾</span>
+            </button>
+            <button type="button" className="btn btn-line ap-btn lv-acct" onClick={openAccountModal}>
+              <span className="lv-dot" aria-hidden="true" />
+              <span className="mono">{account.displayName}</span>
+            </button>
+          </span>
         );
       }}
     </ConnectButton.Custom>
@@ -52,13 +57,25 @@ export function ConnectFirst({ title, body, children }: { title: string; body: R
       <span className="ap-empty-mark" aria-hidden="true">
         <span />
       </span>
-      <h2>{isConnected ? `Switch to ${chain.name}` : title}</h2>
-      <p>{isConnected ? `Mitra’s vault on test networks lives on ${chain.name}. Your wallet is on another network.` : body}</p>
+      <h2>{isConnected ? "Pick a network Mitra runs on" : title}</h2>
+      <p>
+        {isConnected
+          ? `Your wallet is on a network without a Mitra vault. Mitra runs on ${NETWORKS.map((n) => n.label).join(" and ")}, both test networks.`
+          : body}
+      </p>
       <div className="ap-actions">
         {isConnected ? (
-          <button type="button" className="btn btn-dark ap-btn" disabled={isPending} onClick={() => switchChain({ chainId: chain.id })}>
-            {isPending ? "Switching…" : `Switch to ${chain.name}`} <span aria-hidden="true">→</span>
-          </button>
+          NETWORKS.map((n, i) => (
+            <button
+              key={n.key}
+              type="button"
+              className={`btn ${i === 0 ? "btn-dark" : "btn-line"} ap-btn`}
+              disabled={isPending}
+              onClick={() => switchChain({ chainId: n.chain.id })}
+            >
+              {isPending ? "Switching…" : `Switch to ${n.label}`}
+            </button>
+          ))
         ) : (
           <button type="button" className="btn btn-dark ap-btn" onClick={openConnectModal}>
             Connect wallet <span aria-hidden="true">→</span>
@@ -74,7 +91,7 @@ export function TxLine({ state }: { state: TxState }) {
   if (state.status === "idle") return null;
   const link =
     "hash" in state && state.hash ? (
-      <a href={explorerTx(state.hash)} target="_blank" rel="noreferrer" className="mono">
+      <a href={`${state.explorer}/tx/${state.hash}`} target="_blank" rel="noreferrer" className="mono">
         {short(state.hash)} ↗
       </a>
     ) : null;

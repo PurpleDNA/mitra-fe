@@ -2,7 +2,7 @@
 
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 import Link from "next/link";
-import { POLICY_ENGINE, USDC, VAULT, VAULT_ABI } from "@/lib/chain/config";
+import { NETWORKS, POLICY_ENGINE, VAULT_ABI } from "@/lib/chain/config";
 import { useMandates, usePrincipal, useSavedAgents, useTx, useVaultPosition } from "@/lib/chain/hooks";
 import { TxLine } from "./Wallet";
 
@@ -12,7 +12,7 @@ import { TxLine } from "./Wallet";
  * open for it, and an agent that has spent under them.
  */
 export function StepsLive({ ws }: { ws: string }) {
-  const { principal, isConnected, onChain } = usePrincipal();
+  const { principal, isConnected, onChain, net } = usePrincipal();
   const { openConnectModal } = useConnectModal();
   const { position } = useVaultPosition(principal);
   const { agents } = useSavedAgents(principal);
@@ -33,7 +33,9 @@ export function StepsLive({ ws }: { ws: string }) {
     {
       done: connected && (position?.total ?? 0n) > 0n,
       title: "Set up the vault",
-      body: "Move test USDC into Mitra’s vault on Base Sepolia. It stays there until a payment passes all three checks.",
+      body: connected
+        ? `Move test ${net.token.symbol} into Mitra’s vault on ${net.label}. It stays there until a payment passes all three checks.`
+        : `Move test stablecoins into Mitra’s vault on ${NETWORKS.map((n) => n.label).join(" or ")}. They stay there until a payment passes all three checks.`,
       href: `/app/${ws}/vault`,
       cta: "Set up the vault",
     },
@@ -90,7 +92,7 @@ export function StepsLive({ ws }: { ws: string }) {
  * on, the contract refuses every agent payment and every withdrawal from this vault.
  */
 export function PauseAll() {
-  const { principal, isConnected, onChain } = usePrincipal();
+  const { principal, isConnected, onChain, net } = usePrincipal();
   const { position } = useVaultPosition(principal);
   const tx = useTx();
   if (!isConnected || !onChain || !position || position.total === 0n) return null;
@@ -102,7 +104,7 @@ export function PauseAll() {
         className={`btn ${frozen ? "btn-dark" : "btn-line"} ap-btn`}
         disabled={tx.busy}
         onClick={() =>
-          tx.send(frozen ? "Resume" : "Pause all", { address: VAULT, abi: VAULT_ABI, functionName: "setEmergencyFreeze", args: [USDC.address, !frozen] })
+          tx.send(frozen ? "Resume" : "Pause all", { address: net.vault, abi: VAULT_ABI, functionName: "setEmergencyFreeze", args: [net.token.address, !frozen] })
         }
       >
         {frozen ? null : <span className="ap-dot-stop" aria-hidden="true" />}

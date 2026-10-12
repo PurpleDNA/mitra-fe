@@ -5,16 +5,29 @@ import { useCallback, useEffect, useState } from "react";
 import { BaseError, ContractFunctionRevertedError, formatUnits, parseUnits, type Abi } from "viem";
 import { useAccount, usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { chain, ERC20_ABI, USDC, VAULT, VAULT_ABI } from "./config";
+import { DEFAULT_NET, ERC20_ABI, netFor, VAULT_ABI, type Net } from "./config";
 
-/** The connected wallet, if it is on the chain the app works on. It is the vault's principal. */
-export function usePrincipal() {
-  const { address, isConnected, chainId } = useAccount();
-  return { principal: address, isConnected, onChain: chainId === chain.id };
+/**
+ * The network the app is working on: the one the connected wallet is on, when Mitra has
+ * a vault there; otherwise the default (Base Sepolia), which is also what a signed-out or
+ * disconnected visitor sees.
+ */
+export function useNet(): Net {
+  const { chainId } = useAccount();
+  return netFor(chainId) ?? DEFAULT_NET;
 }
 
-export const toUsdc = (atomic: bigint | undefined) => (atomic === undefined ? 0 : Number(formatUnits(atomic, USDC.decimals)));
-export const fromUsdc = (amount: string) => parseUnits(amount.trim() || "0", USDC.decimals);
+/** The connected wallet, if it is on a network Mitra has a vault on. It is the vault's principal. */
+export function usePrincipal() {
+  const { address, isConnected, chainId } = useAccount();
+  const net = useNet();
+  return { principal: address, isConnected, onChain: netFor(chainId) !== null, net };
+}
+
+/** Both tokens have 6 decimals (config.ts). */
+const DECIMALS = 6;
+export const toUnits = (atomic: bigint | undefined) => (atomic === undefined ? 0 : Number(formatUnits(atomic, DECIMALS)));
+export const fromUnits = (amount: string) => parseUnits(amount.trim() || "0", DECIMALS);
 
 /** Keeps an amount field to digits and one point. */
 export const cleanAmount = (v: string) => v.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
@@ -22,18 +35,19 @@ export const cleanAmount = (v: string) => v.replace(/[^0-9.]/g, "").replace(/(\.
 /** A positive amount in atomic units, or null if the field does not hold one. */
 export function parseAmount(v: string): bigint | null {
   if (!/^\d*\.?\d{0,6}$/.test(v) || !/\d/.test(v)) return null;
-  const n = fromUsdc(v);
+  const n = fromUnits(v);
   return n > 0n ? n : null;
 }
 
 /** The principal's position in the vault, read from the contract. */
 export function useVaultPosition(principal?: `0x${string}`) {
+  const net = useNet();
   const q = useReadContract({
-    address: VAULT,
+    address: net.vault,
     abi: VAULT_ABI,
     functionName: "vaults",
-    args: principal ? [principal, USDC.address] : undefined,
-    chainId: chain.id,
+    args: principal ? [principal, net.token.address] : undefined,
+    chainId: net.chain.id,
     query: { enabled: Boolean(principal) },
   });
   const [total, available, reserved, escrowed, encumbered, settling, frozen, emergencyFreeze] = q.data ?? [];
@@ -43,13 +57,14 @@ export function useVaultPosition(principal?: `0x${string}`) {
   };
 }
 
-/** USDC in the wallet itself, and how much the vault may pull from it. */
-export function useWalletUsdc(principal?: `0x${string}`) {
+/** The network's token in the wallet itself, and how much the vault may pull from it. */
+export function useWalletToken(principal?: `0x${string}`) {
+  const net = useNet();
   const q = useReadContracts({
     contracts: principal
       ? [
-          { address: USDC.address, abi: ERC20_ABI, functionName: "balanceOf", args: [principal], chainId: chain.id },
-          { address: USDC.address, abi: ERC20_ABI, functionName: "allowance", args: [principal, VAULT], chainId: chain.id },
+          { address: net.token.address, abi: ERC20_ABI, functionName: "balanceOf", args: [principal], chainId: net.chain.id },
+          { address: net.token.address, abi: ERC20_ABI, functionName: "allowance", args: [principal, net.vault], chainId: net.chain.id },
         ]
       : [],
     query: { enabled: Boolean(principal) },
@@ -87,20 +102,21 @@ const toAgent = (r: AgentRow): SavedAgent => ({
 });
 
 /** Where agents lived before accounts. Imported into the account once, then cleared. */
-const legacyKey = (principal: string) => `mitra:agents:${chain.id}:${principal.toLowerCase()}`;
+const legacyKey = (chainId: number, principal: string) => `mitra:agents:${chainId}:${principal.toLowerCase()}`;
 
 export function useSavedAgents(principal?: `0x${string}`) {
   const [agents, setAgents] = useState<SavedAgent[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const owner = principal?.toLowerCase();
+  const chainId = useNet().chain.id;
 
   const reload = useCallback(async () => {
     if (!owner) return;
     const { data, error } = await supabaseBrowser()
       .from("agents")
       .select("name, address, created_at, capabilities")
-      .eq("chain_id", chain.id)
+      .eq("chain_id", chainId)
       .eq("principal", owner)
       .order("created_at");
     if (error) {
@@ -110,17 +126,17 @@ export function useSavedAgents(principal?: `0x${string}`) {
     setError(null);
     setAgents((data as AgentRow[]).map(toAgent));
     setLoaded(true);
-  }, [owner]);
+  }, [owner, chainId]);
 
   useEffect(() => {
     setAgents([]);
     setLoaded(false);
     if (!owner) return;
     void (async () => {
-      await importLegacy(owner);
+      await importLegacy(chainId, owner);
       await reload();
     })();
-  }, [owner, reload]);
+  }, [owner, chainId, reload]);
 
   const add = useCallback(
     async (a: Omit<SavedAgent, "addedAt">) => {
@@ -128,13 +144,13 @@ export function useSavedAgents(principal?: `0x${string}`) {
       const { error } = await supabaseBrowser()
         .from("agents")
         .upsert(
-          { chain_id: chain.id, principal: owner, address: a.address.toLowerCase(), name: a.name, capabilities: a.capabilities ?? [] },
+          { chain_id: chainId, principal: owner, address: a.address.toLowerCase(), name: a.name, capabilities: a.capabilities ?? [] },
           { onConflict: "user_id,chain_id,principal,address" },
         );
       if (error) setError(`Couldn’t save the agent: ${error.message}`);
       await reload();
     },
-    [owner, reload],
+    [owner, chainId, reload],
   );
 
   const remove = useCallback(
@@ -143,13 +159,13 @@ export function useSavedAgents(principal?: `0x${string}`) {
       const { error } = await supabaseBrowser()
         .from("agents")
         .delete()
-        .eq("chain_id", chain.id)
+        .eq("chain_id", chainId)
         .eq("principal", owner)
         .eq("address", address.toLowerCase());
       if (error) setError(`Couldn’t remove the agent: ${error.message}`);
       await reload();
     },
-    [owner, reload],
+    [owner, chainId, reload],
   );
 
   const update = useCallback(
@@ -158,29 +174,29 @@ export function useSavedAgents(principal?: `0x${string}`) {
       const { error } = await supabaseBrowser()
         .from("agents")
         .update({ ...(patch.name ? { name: patch.name } : {}), ...(patch.capabilities ? { capabilities: patch.capabilities } : {}) })
-        .eq("chain_id", chain.id)
+        .eq("chain_id", chainId)
         .eq("principal", owner)
         .eq("address", address.toLowerCase());
       if (error) setError(`Couldn’t save the change: ${error.message}`);
       await reload();
     },
-    [owner, reload],
+    [owner, chainId, reload],
   );
 
   return { agents, loaded, error, add, remove, update };
 }
 
 /** Moves agents saved in this browser before accounts existed into the account, then forgets them here. */
-async function importLegacy(owner: string) {
+async function importLegacy(chainId: number, owner: string) {
   let legacy: SavedAgent[] = [];
   try {
-    legacy = JSON.parse(localStorage.getItem(legacyKey(owner)) ?? "[]") as SavedAgent[];
+    legacy = JSON.parse(localStorage.getItem(legacyKey(chainId, owner)) ?? "[]") as SavedAgent[];
   } catch {
     return;
   }
   if (legacy.length === 0) return;
   const rows = legacy.map((a) => ({
-    chain_id: chain.id,
+    chain_id: chainId,
     principal: owner,
     address: a.address.toLowerCase(),
     name: a.name.slice(0, 48) || "Agent",
@@ -191,7 +207,7 @@ async function importLegacy(owner: string) {
     .upsert(rows, { onConflict: "user_id,chain_id,principal,address", ignoreDuplicates: true });
   if (!error) {
     try {
-      localStorage.removeItem(legacyKey(owner));
+      localStorage.removeItem(legacyKey(chainId, owner));
     } catch {
       // Storage blocked: the import is idempotent, so a second run changes nothing.
     }
@@ -210,14 +226,15 @@ export interface ChainMandate {
 
 /** The on-chain mandate for each holder, or null where none was opened. */
 export function useMandates(principal: `0x${string}` | undefined, holders: `0x${string}`[]) {
+  const net = useNet();
   const q = useReadContracts({
     contracts: principal
       ? holders.map((h) => ({
-          address: VAULT,
+          address: net.vault,
           abi: VAULT_ABI,
           functionName: "mandates" as const,
-          args: [principal, h, USDC.address] as const,
-          chainId: chain.id,
+          args: [principal, h, net.token.address] as const,
+          chainId: net.chain.id,
         }))
       : [],
     query: { enabled: Boolean(principal) && holders.length > 0 },
@@ -237,9 +254,9 @@ export function useMandates(principal: `0x${string}` | undefined, holders: `0x${
 export type TxState =
   | { status: "idle" }
   | { status: "signing"; label: string }
-  | { status: "pending"; label: string; hash: `0x${string}` }
-  | { status: "done"; label: string; hash: `0x${string}` }
-  | { status: "failed"; label: string; error: string; code?: string; hash?: `0x${string}` };
+  | { status: "pending"; label: string; hash: `0x${string}`; explorer: string }
+  | { status: "done"; label: string; hash: `0x${string}`; explorer: string }
+  | { status: "failed"; label: string; error: string; code?: string; hash?: `0x${string}`; explorer: string };
 
 /**
  * What a contract refusal means, in words. The code itself is kept for the audit
@@ -281,7 +298,8 @@ export function txError(e: unknown): { error: string; code?: string } {
 export function useTx() {
   const [state, setState] = useState<TxState>({ status: "idle" });
   const { writeContractAsync } = useWriteContract();
-  const client = usePublicClient({ chainId: chain.id });
+  const net = useNet();
+  const client = usePublicClient({ chainId: net.chain.id });
   const queryClient = useQueryClient();
 
   const send = useCallback(
@@ -290,22 +308,22 @@ export function useTx() {
       let hash: `0x${string}` | undefined;
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hash = await writeContractAsync({ ...(call as any), chainId: chain.id });
-        setState({ status: "pending", label, hash: hash! });
+        hash = await writeContractAsync({ ...(call as any), chainId: net.chain.id });
+        setState({ status: "pending", label, hash: hash!, explorer: net.explorer });
         const receipt = await client!.waitForTransactionReceipt({ hash: hash! });
         await queryClient.invalidateQueries();
         if (receipt.status !== "success") {
-          setState({ status: "failed", label, hash, error: "The transaction reverted." });
+          setState({ status: "failed", label, hash, error: "The transaction reverted.", explorer: net.explorer });
           return false;
         }
-        setState({ status: "done", label, hash: hash! });
+        setState({ status: "done", label, hash: hash!, explorer: net.explorer });
         return true;
       } catch (e) {
-        setState({ status: "failed", label, hash, ...txError(e) });
+        setState({ status: "failed", label, hash, ...txError(e), explorer: net.explorer });
         return false;
       }
     },
-    [client, queryClient, writeContractAsync],
+    [client, net, queryClient, writeContractAsync],
   );
 
   const busy = state.status === "signing" || state.status === "pending";

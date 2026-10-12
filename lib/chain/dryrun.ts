@@ -1,6 +1,6 @@
 import { formatUnits } from "viem";
 import type { CheckResult } from "@/lib/app/types";
-import { POLICY_ENGINE, USDC } from "./config";
+import { POLICY_ENGINE } from "./config";
 import type { ChainMandate } from "./hooks";
 
 /**
@@ -34,7 +34,7 @@ export interface DryRun {
 }
 
 const usd = (atomic: bigint) =>
-  `$${Number(formatUnits(atomic, USDC.decimals)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  `$${Number(formatUnits(atomic, 6)).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export function dryRun(input: {
   mandate: ChainMandate | null;

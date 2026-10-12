@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ERC20_ABI, explorerAddress, FAUCET_URL, USDC, VAULT, VAULT_ABI, chain } from "@/lib/chain/config";
-import { cleanAmount as clean, parseAmount as parse, toUsdc, usePrincipal, useTx, useVaultPosition, useWalletUsdc } from "@/lib/chain/hooks";
+import { useQueryClient } from "@tanstack/react-query";
+import { ERC20_ABI, explorerAddress, NETWORKS, VAULT_ABI, type Net } from "@/lib/chain/config";
+import { cleanAmount as clean, parseAmount as parse, toUnits, usePrincipal, useTx, useVaultPosition, useWalletToken } from "@/lib/chain/hooks";
 import { money } from "@/lib/app/workspaces";
 import { ConnectFirst, TxLine, short } from "./Wallet";
 
@@ -15,7 +16,7 @@ export function VaultLive() {
   return (
     <ConnectFirst
       title="Connect the wallet that will own the vault"
-      body={`Your vault is your position in Mitra’s vault contract on ${chain.name}, keyed by your wallet. Only that wallet can withdraw from it or give agents limits.`}
+      body={`Your vault is your position in Mitra’s vault contract on ${NETWORKS.map((n) => n.label).join(" or ")}, keyed by your wallet. Only that wallet can withdraw from it or give agents limits.`}
     >
       <VaultPanel />
     </ConnectFirst>
@@ -23,9 +24,10 @@ export function VaultLive() {
 }
 
 function VaultPanel() {
-  const { principal } = usePrincipal();
+  const { principal, net } = usePrincipal();
+  const T = net.token;
   const { position, isLoading } = useVaultPosition(principal);
-  const wallet = useWalletUsdc(principal);
+  const wallet = useWalletToken(principal);
   const tx = useTx();
   const [dep, setDep] = useState("");
   const [wd, setWd] = useState("");
@@ -37,26 +39,26 @@ function VaultPanel() {
     const amount = parse(dep);
     if (!amount || !principal) return;
     if ((wallet.allowance ?? 0n) < amount) {
-      const ok = await tx.send(`Allow the vault to take ${dep} ${USDC.symbol}`, {
-        address: USDC.address,
+      const ok = await tx.send(`Allow the vault to take ${dep} ${T.symbol}`, {
+        address: T.address,
         abi: ERC20_ABI,
         functionName: "approve",
-        args: [VAULT, amount],
+        args: [net.vault, amount],
       });
       if (!ok) return;
     }
-    const ok = await tx.send(`Deposit ${dep} ${USDC.symbol}`, { address: VAULT, abi: VAULT_ABI, functionName: "deposit", args: [USDC.address, amount] });
+    const ok = await tx.send(`Deposit ${dep} ${T.symbol}`, { address: net.vault, abi: VAULT_ABI, functionName: "deposit", args: [T.address, amount] });
     if (ok) setDep("");
   }
 
   async function withdraw() {
     const amount = parse(wd);
     if (!amount || !principal) return;
-    const ok = await tx.send(`Withdraw ${wd} ${USDC.symbol}`, {
-      address: VAULT,
+    const ok = await tx.send(`Withdraw ${wd} ${T.symbol}`, {
+      address: net.vault,
       abi: VAULT_ABI,
       functionName: "withdraw",
-      args: [USDC.address, amount, principal],
+      args: [T.address, amount, principal],
     });
     if (ok) setWd("");
   }
@@ -71,22 +73,22 @@ function VaultPanel() {
       <div className="ap-stats">
         <div className="ap-stat">
           <span className="tag">Free to spend</span>
-          <span className="ap-stat-v">{isLoading ? "…" : money(toUsdc(position?.available))}</span>
-          <span className="ap-stat-n">{USDC.symbol} · {chain.name}</span>
+          <span className="ap-stat-v">{isLoading ? "…" : money(toUnits(position?.available))}</span>
+          <span className="ap-stat-n">{T.symbol} · {net.label}</span>
         </div>
         <div className="ap-stat">
           <span className="tag">Held</span>
-          <span className="ap-stat-v">{isLoading ? "…" : money(toUsdc(held))}</span>
+          <span className="ap-stat-v">{isLoading ? "…" : money(toUnits(held))}</span>
           <span className="ap-stat-n">Reserved, in escrow or settling</span>
         </div>
         <div className="ap-stat tinted">
           <span className="tag">In the vault</span>
-          <span className="ap-stat-v">{isLoading ? "…" : money(toUsdc(position?.total))}</span>
+          <span className="ap-stat-v">{isLoading ? "…" : money(toUnits(position?.total))}</span>
           <span className="ap-stat-n">{position?.emergencyFreeze ? "Paused: nothing can leave" : "Total, all positions"}</span>
         </div>
         <div className="ap-stat">
           <span className="tag">In your wallet</span>
-          <span className="ap-stat-v">{wallet.isLoading ? "…" : money(toUsdc(wallet.balance))}</span>
+          <span className="ap-stat-v">{wallet.isLoading ? "…" : money(toUnits(wallet.balance))}</span>
           <span className="ap-stat-n">Not in Mitra yet</span>
         </div>
       </div>
@@ -110,28 +112,20 @@ function VaultPanel() {
         >
           <h2>{hasVault ? "Add money" : "Fund your vault"}</h2>
           <p>
-            Moves {USDC.symbol} from your wallet into the vault. The first time, your wallet asks twice: once to let the vault take
+            Moves {T.symbol} from your wallet into the vault. The first time, your wallet asks twice: once to let the vault take
             the amount, once to deposit it.
           </p>
           <label className="lv-field">
-            <span className="tag">Amount ({USDC.symbol})</span>
+            <span className="tag">Amount ({T.symbol})</span>
             <span className="lv-row">
               <input inputMode="decimal" placeholder="10.00" value={dep} onChange={(e) => setDep(clean(e.target.value))} />
-              <button type="button" className="lv-max" onClick={() => setDep(String(toUsdc(wallet.balance)))}>
+              <button type="button" className="lv-max" onClick={() => setDep(String(toUnits(wallet.balance)))}>
                 Max
               </button>
             </span>
           </label>
           {depTooMuch ? <p className="lv-err">That is more than your wallet holds.</p> : null}
-          {wallet.balance === 0n ? (
-            <p className="lv-hint">
-              Your wallet has no test {USDC.symbol}. Get some free from{" "}
-              <a href={FAUCET_URL} target="_blank" rel="noreferrer">
-                Circle’s faucet ↗
-              </a>{" "}
-              (choose {chain.name}). You also need a little test ETH for gas.
-            </p>
-          ) : null}
+          {wallet.balance === 0n ? <Faucet net={net} address={principal!} /> : <p className="lv-hint">{net.gasNote}</p>}
           <button type="submit" className="btn btn-dark ap-btn" disabled={tx.busy || !depAmt || depTooMuch}>
             {hasVault ? "Deposit" : "Set up the vault"} <span aria-hidden="true">→</span>
           </button>
@@ -147,10 +141,10 @@ function VaultPanel() {
           <h2>Withdraw</h2>
           <p>Back to your wallet. Only free money can leave; what is held for a payment stays until that payment finishes.</p>
           <label className="lv-field">
-            <span className="tag">Amount ({USDC.symbol})</span>
+            <span className="tag">Amount ({T.symbol})</span>
             <span className="lv-row">
               <input inputMode="decimal" placeholder="0.00" value={wd} onChange={(e) => setWd(clean(e.target.value))} />
-              <button type="button" className="lv-max" onClick={() => setWd(String(toUsdc(position?.available)))}>
+              <button type="button" className="lv-max" onClick={() => setWd(String(toUnits(position?.available)))}>
                 Max
               </button>
             </span>
@@ -168,8 +162,8 @@ function VaultPanel() {
         <div>
           <dt className="tag">Vault contract</dt>
           <dd>
-            <a href={explorerAddress(VAULT)} target="_blank" rel="noreferrer" className="mono">
-              {short(VAULT)} ↗
+            <a href={explorerAddress(net, net.vault)} target="_blank" rel="noreferrer" className="mono">
+              {short(net.vault)} ↗
             </a>
           </dd>
         </div>
@@ -179,7 +173,7 @@ function VaultPanel() {
         </div>
         <div>
           <dt className="tag">Network</dt>
-          <dd>{chain.name} · test network</dd>
+          <dd>{net.label} · test network</dd>
         </div>
       </dl>
     </>
@@ -205,6 +199,64 @@ function Gauge({ free, held }: { free: bigint; held: bigint }) {
         </span>
         <span>Read from the vault contract, to the last unit.</span>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Where to get free test money. On Base Sepolia that is Circle's faucet, a link. On
+ * Tempo Moderato it is the network's own tempo_fundAddress, which this button calls for
+ * the connected address; the balance shown afterwards is read from the chain, not
+ * assumed from the call.
+ */
+function Faucet({ net, address }: { net: Net; address: `0x${string}` }) {
+  const queryClient = useQueryClient();
+  const [state, setState] = useState<"idle" | "asking" | "sent" | "failed">("idle");
+  const [error, setError] = useState("");
+
+  if (net.faucet.kind === "link") {
+    return (
+      <p className="lv-hint">
+        Your wallet has no test {net.token.symbol}. Get some free from{" "}
+        <a href={net.faucet.url} target="_blank" rel="noreferrer">
+          {net.faucet.name} ↗
+        </a>{" "}
+        (choose {net.label}). {net.gasNote}
+      </p>
+    );
+  }
+
+  async function fund() {
+    setState("asking");
+    try {
+      const r = await fetch(net.chain.rpcUrls.default.http[0], {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tempo_fundAddress", params: [address] }),
+      });
+      const j = (await r.json()) as { result?: unknown; error?: { message: string } };
+      if (j.error) throw new Error(j.error.message);
+      setState("sent");
+      // The faucet answers before its transfers are mined; read the balance again shortly.
+      for (const ms of [3000, 8000, 15000]) setTimeout(() => void queryClient.invalidateQueries(), ms);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+      setState("failed");
+    }
+  }
+
+  return (
+    <div className="lv-hint">
+      <p>
+        Your wallet has no test {net.token.symbol}. {net.label} has a faucet: it sends free test stablecoins to your wallet.{" "}
+        {net.gasNote}
+      </p>
+      <p>
+        <button type="button" className="btn btn-line ap-btn" onClick={fund} disabled={state === "asking" || state === "sent"}>
+          {state === "asking" ? "Asking the faucet…" : state === "sent" ? "Sent: your balance updates in a few seconds" : `Get test ${net.token.symbol}`}
+        </button>
+      </p>
+      {state === "failed" ? <p className="lv-err">The faucet refused: {error}</p> : null}
     </div>
   );
 }

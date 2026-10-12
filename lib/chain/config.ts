@@ -1,22 +1,77 @@
-import { parseAbi } from "viem";
+import { defineChain, parseAbi, type Chain } from "viem";
 import { baseSepolia } from "viem/chains";
 
 /**
- * The on-chain side of the app: the canonical MitraVault the engine settles through,
- * and the token it holds. Quoted from ../mitra/lib/evm/deployments.json (revision F61,
- * runtimeCodeMatchesArtifact) and read back from Base Sepolia before use: the address
- * carries code and PERMIT_TYPEHASH() answers. Never retype an address from a summary
- * (engine F58); copy it from that file.
+ * The on-chain side of the app: the canonical MitraVault the engine settles through on
+ * each test network, and the token it holds there. Vault addresses are quoted from
+ * ../mitra/lib/evm/deployments.json (revision F61, runtimeCodeMatchesArtifact) and were
+ * read back from each chain on 2026-10-12: 8,816 bytes of code and PERMIT_TYPEHASH()
+ * 0xcae3f4fb… on both. Never retype an address from a summary (engine F58).
  *
- * Base Sepolia only for now. Tempo Moderato has the same contract, but wallets do not
- * handle its stablecoin-paid gas well yet; add it here when one is tested end to end.
+ * Both tokens have 6 decimals; the amount helpers in hooks.ts rely on that.
  */
-export const chain = baseSepolia;
+export type NetKey = "base" | "tempo";
 
-export const VAULT = "0x92dcee6acbfcf50f32a3e9c689d7f2ceef9ee489" as const;
+export interface Net {
+  /** The engine's name for the chain (approvedChains, agent wallets). */
+  key: NetKey;
+  chain: Chain;
+  label: string;
+  vault: `0x${string}`;
+  token: { address: `0x${string}`; symbol: string; decimals: 6 };
+  explorer: string;
+  /** Where test money comes from. "rpc" means Moderato's tempo_fundAddress, called from the app. */
+  faucet: { kind: "link"; url: string; name: string } | { kind: "rpc" };
+  /** What pays for transactions, in words. */
+  gasNote: string;
+}
 
-/** Circle's test USDC on Base Sepolia, the token the engine's live runs settled in. */
-export const USDC = { address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", symbol: "USDC", decimals: 6 } as const;
+/**
+ * Tempo Moderato as a wallet should add it. viem's own `tempoModerato` declares a
+ * 6-decimal native currency, which MetaMask refuses (it requires 18), and Tempo has no
+ * usable native coin anyway: fees are paid in a TIP-20 stablecoin (engine F12). Plain
+ * EIP-1559 transactions with default fees were checked on Moderato on 2026-10-12
+ * (approve, deposit, openMandate, all status success; the fee came out of PathUSD).
+ */
+export const tempoModerato = defineChain({
+  id: 42431,
+  name: "Tempo Moderato",
+  nativeCurrency: { name: "USD", symbol: "USD", decimals: 18 },
+  rpcUrls: { default: { http: ["https://rpc.moderato.tempo.xyz"] } },
+  blockExplorers: { default: { name: "Tempo Explorer", url: "https://explore.testnet.tempo.xyz" } },
+  testnet: true,
+});
+
+export const BASE: Net = {
+  key: "base",
+  chain: baseSepolia,
+  label: "Base Sepolia",
+  vault: "0x92dcee6acbfcf50f32a3e9c689d7f2ceef9ee489",
+  // Circle's test USDC, the token the engine's live runs settled in.
+  token: { address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", symbol: "USDC", decimals: 6 },
+  explorer: "https://sepolia.basescan.org",
+  faucet: { kind: "link", url: "https://faucet.circle.com", name: "Circle’s faucet" },
+  gasNote: "You also need a little Base Sepolia ETH for gas.",
+};
+
+export const TEMPO: Net = {
+  key: "tempo",
+  chain: tempoModerato,
+  label: "Tempo Moderato",
+  vault: "0x85409dfc30fa0671b06f98cc56c5b04eb921b568",
+  // PathUSD, TIP-20 index 0; the engine asserts name() == "PathUSD" before moving value.
+  token: { address: "0x20c0000000000000000000000000000000000000", symbol: "PathUSD", decimals: 6 },
+  explorer: "https://explore.testnet.tempo.xyz",
+  faucet: { kind: "rpc" },
+  gasNote: "Fees are paid in the stablecoin itself, a fraction of a cent each. Ignore the USD balance your wallet shows: Tempo has no gas coin.",
+};
+
+export const NETWORKS: Net[] = [BASE, TEMPO];
+export const DEFAULT_NET = BASE;
+export const netFor = (chainId: number | undefined): Net | null => NETWORKS.find((n) => n.chain.id === chainId) ?? null;
+
+export const explorerTx = (net: Net, hash: string) => `${net.explorer}/tx/${hash}`;
+export const explorerAddress = (net: Net, a: string) => `${net.explorer}/address/${a}`;
 
 /**
  * The policy engine a mandate names: the only key whose permits the vault will honour.
@@ -35,9 +90,6 @@ export const POLICY_ENGINE = (process.env.NEXT_PUBLIC_MITRA_POLICY_ENGINE ||
  */
 export const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
 
-export const FAUCET_URL = "https://faucet.circle.com";
-export const explorerTx = (hash: string) => `https://sepolia.basescan.org/tx/${hash}`;
-export const explorerAddress = (a: string) => `https://sepolia.basescan.org/address/${a}`;
 
 /** The surface of contracts/MitraVault.sol the app calls. */
 export const VAULT_ABI = parseAbi([

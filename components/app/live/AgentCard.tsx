@@ -3,9 +3,9 @@
 import { useState, type KeyboardEvent } from "react";
 import { Pips } from "@/components/app/Blocks";
 import { money } from "@/lib/app/workspaces";
-import { POLICY_ENGINE, USDC, VAULT, VAULT_ABI, explorerAddress } from "@/lib/chain/config";
+import { POLICY_ENGINE, VAULT_ABI, explorerAddress } from "@/lib/chain/config";
 import { dryRun, ENGINE_DEFAULT_CAPABILITIES, type DryRun } from "@/lib/chain/dryrun";
-import { cleanAmount, parseAmount, toUsdc, useTx, type ChainMandate, type SavedAgent } from "@/lib/chain/hooks";
+import { cleanAmount, parseAmount, toUnits, useNet, useTx, type ChainMandate, type SavedAgent } from "@/lib/chain/hooks";
 import { Audit, CopyButton, short } from "./Wallet";
 
 type Status = "loading" | "no-limits" | "active" | "revoked" | "expired" | "other-engine";
@@ -57,6 +57,7 @@ export function AgentCard({
   tx: ReturnType<typeof useTx>;
   principal: `0x${string}`;
 }) {
+  const net = useNet();
   const status = statusOf(mandate, loading);
   const s = STATUS[status];
   const m = mandate ?? null;
@@ -69,19 +70,19 @@ export function AgentCard({
 
   async function revoke() {
     if (!confirm(`Revoke ${agent.name}’s card? This is permanent: the vault refuses every payment for this agent from now on, including ones already approved.`)) return;
-    await tx.send(`Revoke ${agent.name}`, { address: VAULT, abi: VAULT_ABI, functionName: "revokeMandate", args: [principal, agent.address, USDC.address] });
+    await tx.send(`Revoke ${agent.name}`, { address: net.vault, abi: VAULT_ABI, functionName: "revokeMandate", args: [principal, agent.address, net.token.address] });
   }
 
   return (
     <article className={`lv-sc ${status}`}>
       <div className="lv-sc-face">
         <header className="lv-sc-top">
-          <span className="tag">Spend card · {USDC.symbol} · Base Sepolia</span>
+          <span className="tag">Spend card · {net.token.symbol} · {net.label}</span>
           <span className={`ap-chip ${s.cls}`}>{s.label}</span>
         </header>
         <div className="lv-sc-who">
           <h3>{agent.name}</h3>
-          <a href={explorerAddress(agent.address)} target="_blank" rel="noreferrer" className="mono ap-meta">
+          <a href={explorerAddress(net, agent.address)} target="_blank" rel="noreferrer" className="mono ap-meta">
             {short(agent.address)} ↗
           </a>
         </div>
@@ -89,8 +90,8 @@ export function AgentCard({
         {m ? (
           <>
             <div className="lv-sc-head">
-              <span className="lv-sc-left">{money(toUsdc(left))}</span>
-              <span className="ap-meta">left of {money(toUsdc(m.ceiling))} budget</span>
+              <span className="lv-sc-left">{money(toUnits(left))}</span>
+              <span className="ap-meta">left of {money(toUnits(m.ceiling))} budget</span>
             </div>
             <div className="lv-bar" role="img" aria-label={`${usedPct}% of the budget spent`}>
               <span style={{ width: `${Math.min(100, usedPct)}%` }} />
@@ -98,11 +99,11 @@ export function AgentCard({
             <dl className="lv-sc-facts">
               <div>
                 <dt className="tag">Per payment</dt>
-                <dd>{money(toUsdc(m.limit))}</dd>
+                <dd>{money(toUnits(m.limit))}</dd>
               </div>
               <div>
                 <dt className="tag">Spent</dt>
-                <dd>{money(toUsdc(m.spent))}</dd>
+                <dd>{money(toUnits(m.spent))}</dd>
               </div>
               <div>
                 <dt className="tag">Ends</dt>
@@ -276,18 +277,19 @@ function TryIt({
   vault: { available: bigint; emergencyFreeze: boolean } | undefined;
   capabilities: string[];
 }) {
+  const net = useNet();
   const allowed = capabilities.length ? capabilities : ENGINE_DEFAULT_CAPABILITIES;
   const [amount, setAmount] = useState("");
   const [capability, setCapability] = useState(allowed[0]);
   const [result, setResult] = useState<{ run: DryRun; amount: string; capability: string } | null>(null);
 
   const run = (amt: bigint, cap: string) => {
-    setAmount(String(toUsdc(amt)));
+    setAmount(String(toUnits(amt)));
     setCapability(cap);
-    setResult({ run: dryRun({ mandate, vault, capabilities, amount: amt, capability: cap }), amount: String(toUsdc(amt)), capability: cap });
+    setResult({ run: dryRun({ mandate, vault, capabilities, amount: amt, capability: cap }), amount: String(toUnits(amt)), capability: cap });
   };
 
-  const unit = 10n ** BigInt(USDC.decimals);
+  const unit = 10n ** BigInt(net.token.decimals);
   const cap = mandate?.limit ?? 20n * unit;
   const overspend = cap * 3n;
   const headroom = mandate ? mandate.ceiling - mandate.spent : 0n;
@@ -302,10 +304,10 @@ function TryIt({
       <div className="ap-actions">
         <button type="button" className="btn btn-line ap-btn" onClick={() => run(overspend, allowed[0])}>
           <span className="ap-dot-stop" aria-hidden="true" />
-          Try an overspend ({money(toUsdc(overspend))})
+          Try an overspend ({money(toUnits(overspend))})
         </button>
         <button type="button" className="btn btn-line ap-btn" onClick={() => run(valid > 0n ? valid : unit, allowed[0])}>
-          Try a valid task ({money(toUsdc(valid > 0n ? valid : unit))})
+          Try a valid task ({money(toUnits(valid > 0n ? valid : unit))})
         </button>
       </div>
       <form
@@ -317,7 +319,7 @@ function TryIt({
         }}
       >
         <label className="lv-field">
-          <span className="tag">Amount ({USDC.symbol})</span>
+          <span className="tag">Amount ({net.token.symbol})</span>
           <input inputMode="decimal" value={amount} onChange={(e) => setAmount(cleanAmount(e.target.value))} placeholder="15.00" />
         </label>
         <label className="lv-field">
@@ -355,10 +357,10 @@ function TryIt({
           </p>
           <Audit
             rows={[
-              ["Request", `${result.amount} ${USDC.symbol} for "${result.capability}"`],
+              ["Request", `${result.amount} ${net.token.symbol} for "${result.capability}"`],
               ["Decision", result.run.allowed ? "ALLOW (dry run)" : "DENY (dry run)"],
               ...result.run.reasons.map((r): [string, string] => [r.where, r.code]),
-              ["Limits read from", `${short(VAULT)} mandates(principal, holder, token)`],
+              ["Limits read from", `${short(net.vault)} mandates(principal, holder, token)`],
             ]}
           />
         </div>
@@ -378,10 +380,11 @@ const slug = (name: string) =>
 
 /** The agent's side and the engine's side, prefilled for this agent, each ready to copy. */
 function ConnectPanel({ agent, mandate, principal }: { agent: SavedAgent; mandate: ChainMandate | null; principal: `0x${string}` }) {
+  const net = useNet();
   const agentId = slug(agent.name);
   const caps = agent.capabilities?.length ? agent.capabilities : ENGINE_DEFAULT_CAPABILITIES;
-  const budget = mandate ? toUsdc(mandate.ceiling) : 20;
-  const perPayment = mandate ? toUsdc(mandate.limit) : 5;
+  const budget = mandate ? toUnits(mandate.ceiling) : 20;
+  const perPayment = mandate ? toUnits(mandate.limit) : 5;
   const ends = mandate ? new Date(Number(mandate.expiresAt) * 1000).toISOString() : new Date(Date.now() + 30 * 86400_000).toISOString();
 
   const register = `// Run by the agent, with ITS key (${short(agent.address)}), not yours.
@@ -392,7 +395,7 @@ const wallet = privateKeyToAccount(process.env.AGENT_KEY as \`0x\${string}\`);
 const mitra = new MitraClient({
   baseUrl: "http://localhost:3005",
   agentId: "${agentId}",
-  chainId: 84532,
+  chainId: ${net.chain.id},
   signer: { address: wallet.address, signTypedData: (t) => wallet.signTypedData(t) },
 });
 
@@ -400,7 +403,7 @@ await mitra.agents.register({
   name: ${JSON.stringify(agent.name)},
   owner: "${principal}",
   capabilities: ${JSON.stringify(caps)},
-  chain: "base",
+  chain: "${net.key}",
 });`;
 
   const rules = `curl -X POST http://localhost:3005/api/v1/mandates \\
@@ -412,11 +415,11 @@ await mitra.agents.register({
       principal,
       agentId,
       vaultId: "<the engine's vault id>",
-      asset: "USDC",
+      asset: net.token.symbol,
       budget,
       maxTransaction: perPayment,
       allowedCapabilities: caps,
-      approvedChains: ["base"],
+      approvedChains: [net.key],
       expiresAt: ends,
     },
     null,
@@ -468,8 +471,9 @@ function LimitsForm({
   tx: ReturnType<typeof useTx>;
   onDone: () => void;
 }) {
-  const [perPayment, setPerPayment] = useState(existing ? String(toUsdc(existing.limit)) : "");
-  const [budget, setBudget] = useState(existing ? String(toUsdc(existing.ceiling)) : "");
+  const net = useNet();
+  const [perPayment, setPerPayment] = useState(existing ? String(toUnits(existing.limit)) : "");
+  const [budget, setBudget] = useState(existing ? String(toUnits(existing.ceiling)) : "");
   const [days, setDays] = useState("30");
 
   const limit = parseAmount(perPayment);
@@ -485,16 +489,16 @@ function LimitsForm({
     const expiresAt = BigInt(Math.floor(Date.now() / 1000) + d * 86400);
     const done = existing
       ? await tx.send(`Change ${agent.name}’s limits`, {
-          address: VAULT,
+          address: net.vault,
           abi: VAULT_ABI,
           functionName: "amendMandate",
-          args: [agent.address, USDC.address, limit!, ceiling!, expiresAt],
+          args: [agent.address, net.token.address, limit!, ceiling!, expiresAt],
         })
       : await tx.send(`Open ${agent.name}’s limits`, {
-          address: VAULT,
+          address: net.vault,
           abi: VAULT_ABI,
           functionName: "openMandate",
-          args: [agent.address, USDC.address, limit!, ceiling!, expiresAt, POLICY_ENGINE],
+          args: [agent.address, net.token.address, limit!, ceiling!, expiresAt, POLICY_ENGINE],
         });
     if (done) onDone();
   }
@@ -509,11 +513,11 @@ function LimitsForm({
     >
       <div className="lv-fields">
         <label className="lv-field">
-          <span className="tag">Most per payment ({USDC.symbol})</span>
+          <span className="tag">Most per payment ({net.token.symbol})</span>
           <input inputMode="decimal" value={perPayment} onChange={(e) => setPerPayment(cleanAmount(e.target.value))} placeholder="5.00" />
         </label>
         <label className="lv-field">
-          <span className="tag">Total budget ({USDC.symbol})</span>
+          <span className="tag">Total budget ({net.token.symbol})</span>
           <input inputMode="decimal" value={budget} onChange={(e) => setBudget(cleanAmount(e.target.value))} placeholder="20.00" />
         </label>
         <label className="lv-field">

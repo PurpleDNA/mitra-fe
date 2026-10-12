@@ -13,7 +13,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { chain, WALLETCONNECT_PROJECT_ID } from "@/lib/chain/config";
+import { BASE, TEMPO, WALLETCONNECT_PROJECT_ID } from "@/lib/chain/config";
 
 /** WalletConnect wallets (mobile, QR) need a project id; see WALLETCONNECT_PROJECT_ID. */
 const projectId = WALLETCONNECT_PROJECT_ID;
@@ -32,9 +32,12 @@ const connectors = connectorsForWallets(
 
 const config = createConfig({
   connectors,
-  chains: [chain],
-  // NEXT_PUBLIC_RPC_URL points reads at another node, e.g. a local anvil fork for testing.
-  transports: { [chain.id]: http(process.env.NEXT_PUBLIC_RPC_URL || undefined) },
+  chains: [BASE.chain, TEMPO.chain],
+  transports: {
+    // NEXT_PUBLIC_RPC_URL points Base Sepolia reads at another node, e.g. an anvil fork for testing.
+    [BASE.chain.id]: http(process.env.NEXT_PUBLIC_RPC_URL || undefined),
+    [TEMPO.chain.id]: http(),
+  },
   ssr: true,
 });
 
@@ -45,7 +48,7 @@ export function WalletProviders({ children }: { children: ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={theme} initialChain={chain} appInfo={{ appName: "Mitra" }}>
+        <RainbowKitProvider theme={theme} appInfo={{ appName: "Mitra" }}>
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>

@@ -109,10 +109,18 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
   `components/app/WalletProviders.tsx`) and that wallet is their vault's principal. `acme`
   is demo data (`lib/app/demo.ts`), labelled "Demo data" on every page.
 - **The live workspace is on chain, from the user's wallet** (`components/app/live/`,
-  `lib/chain/`), Base Sepolia only:
-  - Vault: `deposit` / `withdraw` on the canonical MitraVault
-    (`0x92dcee6a…e489`, copied from `../mitra/lib/evm/deployments.json`, never retyped)
-    in Circle test USDC. Positions are read from `vaults(principal, token)`.
+  `lib/chain/`), on two test networks. `NETWORKS` in `lib/chain/config.ts` is the table:
+  Base Sepolia (vault `0x92dcee6a…e489`, Circle test USDC) and Tempo Moderato (vault
+  `0x85409dfc…b568`, PathUSD), both copied from `../mitra/lib/evm/deployments.json` and
+  read back from the chain. The app follows the network the wallet is on (`useNet()`);
+  the top bar has a network menu, and nothing forces a switch on connect.
+  - Tempo is declared with an 18-decimal native currency because MetaMask refuses
+    anything else; Tempo has no gas coin and fees come out of the stablecoin. Plain
+    EIP-1559 transactions with default fees work there (checked 2026-10-12).
+  - Test money: Base links to Circle's faucet; Tempo calls the network's own
+    `tempo_fundAddress` from a button, then re-reads the balance from the chain.
+  - Agents in the account are scoped by chain, so each network has its own list.
+  - Vault: `deposit` / `withdraw`. Positions are read from `vaults(principal, token)`.
   - Agents: the agent's wallet address and a name. The contract has no holder list, so
     the list lives in the account (`agents` table); everything else is read from
     `mandates(principal, holder, token)`.
@@ -137,7 +145,7 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
   - Contract refusals are shown in plain English (`PLAIN` in `lib/chain/hooks.ts`) with the
     raw code in an "Audit details" drawer.
   - Only a receipt with status `success` is shown as confirmed; failures show the revert reason.
-- **Known gap: the engine does not yet pay from a vault opened here.** Its vault rail
+- Agents spend nothing yet. **Known gap: the engine does not yet pay from a vault opened here.** Its vault rail
   (`../mitra/lib/settlement/rails.ts`) pays from the principal it was started with (its
   own key). Until that is configurable, step 5 ("let it work") cannot complete for a
   user's vault, and the Developers page says so.
@@ -148,7 +156,8 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
   `WALLETCONNECT_PROJECT_ID` in `lib/chain/config.ts` (optional; without it only browser-extension
   wallets and Coinbase Wallet are offered), `NEXT_PUBLIC_RPC_URL` (optional; point reads at
   another node, e.g. an anvil fork of Base Sepolia for testing).
-- **Testing the flow without spending testnet funds:** `anvil --fork-url
+- **Testing on Tempo** needs no fork: Moderato's faucet is free and programmatic.
+- **Testing the flow without spending testnet funds (Base):** `anvil --fork-url
   https://sepolia.base.org --chain-id 84532`, give an anvil account test USDC by writing
   its balance (FiatToken balance mapping, slot 9), run `next dev` with
   `NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545`, and use a wallet pointed at the fork.
