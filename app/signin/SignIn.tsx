@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
 
-type Busy = null | "google" | "github" | "email" | "wallet";
+type Busy = null | "google" | "email" | "wallet";
 
 /** Every way in. Each failure says what happened in words; none pretends to have worked. */
 export function SignIn({ next }: { next: string }) {
@@ -16,12 +16,12 @@ export function SignIn({ next }: { next: string }) {
 
   const callback = () => `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
-  async function oauth(provider: "google" | "github") {
+  async function oauth(provider: "google") {
     setBusy(provider);
     setError(null);
     const { error } = await supabaseBrowser().auth.signInWithOAuth({ provider, options: { redirectTo: callback() } });
     if (error) {
-      setError(plain(error.message, provider === "google" ? "Google" : "GitHub"));
+      setError(plain(error.message, "Google"));
       setBusy(null);
     }
   }
@@ -53,14 +53,9 @@ export function SignIn({ next }: { next: string }) {
 
   return (
     <div className="si">
-      <div className="si-row">
-        <button type="button" className="btn btn-line si-btn" disabled={busy !== null} onClick={() => oauth("google")}>
-          {busy === "google" ? "Opening Google…" : "Continue with Google"}
-        </button>
-        <button type="button" className="btn btn-line si-btn" disabled={busy !== null} onClick={() => oauth("github")}>
-          {busy === "github" ? "Opening GitHub…" : "Continue with GitHub"}
-        </button>
-      </div>
+      <button type="button" className="btn btn-line si-btn" disabled={busy !== null} onClick={() => oauth("google")}>
+        {busy === "google" ? "Opening Google…" : "Continue with Google"}
+      </button>
       <button type="button" className="btn btn-dark si-btn" disabled={busy !== null} onClick={wallet}>
         {busy === "wallet" ? "Check your wallet…" : "Sign in with your wallet"}
       </button>

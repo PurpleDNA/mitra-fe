@@ -87,8 +87,8 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
      `.env.local`). The cookie holds a keyed hash of the code, so changing the code locks
      everyone out. Unset, the gate admits nobody.
   2. **An account.** Without a Supabase session, `/app` sends you to `/signin`: Google,
-     GitHub, wallet (Sign in with Ethereum) or an email link. `/auth/callback` trades the
-     one-time code for a session; `/auth/signout` is POST only. The proxy refreshes the
+     wallet (Sign in with Ethereum) or an email link. `/auth/callback` trades the
+     one-time code for a session (GitHub is off, by decision); `/auth/signout` is POST only. The proxy refreshes the
      session cookie on every matched request (`lib/supabase/proxy.ts`).
   Someone already through a door is never shown it again.
 - **Accounts live in Supabase**, project `mitra` (ref `tjlnxnirtltczjruymnl`, eu-west-2,
