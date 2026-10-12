@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { BaseError, ContractFunctionRevertedError, formatUnits, parseUnits, type Abi } from "viem";
 import { useAccount, usePublicClient, useReadContract, useReadContracts, useWriteContract } from "wagmi";
+import { supabaseBrowser } from "@/lib/supabase/client";
 import { chain, ERC20_ABI, USDC, VAULT, VAULT_ABI } from "./config";
 
 /** The connected wallet, if it is on the chain the app works on. It is the vault's principal. */
@@ -57,10 +58,11 @@ export function useWalletUsdc(principal?: `0x${string}`) {
 }
 
 /**
- * The agents this principal has added. The contract has no list of holders (a mandate
- * is looked up by address), so the addresses are kept in this browser; everything
- * about each one — its limits, what it has spent, whether it is revoked — is read from
- * the chain.
+ * The agents this account has registered for this vault owner. The contract has no list
+ * of holders (a mandate is looked up by address), so the list, names and capabilities
+ * live in the account database (Supabase table `agents`, row-level security: only the
+ * signed-in account sees its rows). Everything money-shaped about each agent is read
+ * from the chain.
  */
 export interface SavedAgent {
   name: string;
@@ -70,74 +72,130 @@ export interface SavedAgent {
   capabilities?: string[];
 }
 
-const agentsKey = (principal: string) => `mitra:agents:${chain.id}:${principal.toLowerCase()}`;
-
-function readAgents(principal: string): SavedAgent[] {
-  try {
-    return JSON.parse(localStorage.getItem(agentsKey(principal)) ?? "[]") as SavedAgent[];
-  } catch {
-    return [];
-  }
+interface AgentRow {
+  name: string;
+  address: string;
+  created_at: string;
+  capabilities: string[];
 }
+
+const toAgent = (r: AgentRow): SavedAgent => ({
+  name: r.name,
+  address: r.address as `0x${string}`,
+  addedAt: r.created_at,
+  capabilities: r.capabilities,
+});
+
+/** Where agents lived before accounts. Imported into the account once, then cleared. */
+const legacyKey = (principal: string) => `mitra:agents:${chain.id}:${principal.toLowerCase()}`;
 
 export function useSavedAgents(principal?: `0x${string}`) {
   const [agents, setAgents] = useState<SavedAgent[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const owner = principal?.toLowerCase();
 
-  useEffect(() => {
-    if (!principal) {
-      setAgents([]);
-      setLoaded(false);
+  const reload = useCallback(async () => {
+    if (!owner) return;
+    const { data, error } = await supabaseBrowser()
+      .from("agents")
+      .select("name, address, created_at, capabilities")
+      .eq("chain_id", chain.id)
+      .eq("principal", owner)
+      .order("created_at");
+    if (error) {
+      setError(`Couldn’t load your agents: ${error.message}`);
       return;
     }
-    setAgents(readAgents(principal));
+    setError(null);
+    setAgents((data as AgentRow[]).map(toAgent));
     setLoaded(true);
-    const onStorage = (e: StorageEvent) => {
-      if (e.key === agentsKey(principal)) setAgents(readAgents(principal));
-    };
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, [principal]);
+  }, [owner]);
 
-  const save = useCallback(
-    (next: SavedAgent[]) => {
-      if (!principal) return;
-      setAgents(next);
-      try {
-        localStorage.setItem(agentsKey(principal), JSON.stringify(next));
-      } catch {
-        // Storage blocked: the list lives for this page view only.
-      }
-    },
-    [principal],
-  );
+  useEffect(() => {
+    setAgents([]);
+    setLoaded(false);
+    if (!owner) return;
+    void (async () => {
+      await importLegacy(owner);
+      await reload();
+    })();
+  }, [owner, reload]);
 
   const add = useCallback(
-    (a: Omit<SavedAgent, "addedAt">) => {
-      if (!principal) return;
-      const current = readAgents(principal).filter((x) => x.address.toLowerCase() !== a.address.toLowerCase());
-      save([...current, { ...a, addedAt: new Date().toISOString() }]);
+    async (a: Omit<SavedAgent, "addedAt">) => {
+      if (!owner) return;
+      const { error } = await supabaseBrowser()
+        .from("agents")
+        .upsert(
+          { chain_id: chain.id, principal: owner, address: a.address.toLowerCase(), name: a.name, capabilities: a.capabilities ?? [] },
+          { onConflict: "user_id,chain_id,principal,address" },
+        );
+      if (error) setError(`Couldn’t save the agent: ${error.message}`);
+      await reload();
     },
-    [principal, save],
+    [owner, reload],
   );
 
   const remove = useCallback(
-    (address: string) => {
-      if (!principal) return;
-      save(readAgents(principal).filter((x) => x.address.toLowerCase() !== address.toLowerCase()));
+    async (address: string) => {
+      if (!owner) return;
+      const { error } = await supabaseBrowser()
+        .from("agents")
+        .delete()
+        .eq("chain_id", chain.id)
+        .eq("principal", owner)
+        .eq("address", address.toLowerCase());
+      if (error) setError(`Couldn’t remove the agent: ${error.message}`);
+      await reload();
     },
-    [principal, save],
+    [owner, reload],
   );
 
   const update = useCallback(
-    (address: string, patch: Partial<Omit<SavedAgent, "address" | "addedAt">>) => {
-      if (!principal) return;
-      save(readAgents(principal).map((x) => (x.address.toLowerCase() === address.toLowerCase() ? { ...x, ...patch } : x)));
+    async (address: string, patch: Partial<Omit<SavedAgent, "address" | "addedAt">>) => {
+      if (!owner) return;
+      const { error } = await supabaseBrowser()
+        .from("agents")
+        .update({ ...(patch.name ? { name: patch.name } : {}), ...(patch.capabilities ? { capabilities: patch.capabilities } : {}) })
+        .eq("chain_id", chain.id)
+        .eq("principal", owner)
+        .eq("address", address.toLowerCase());
+      if (error) setError(`Couldn’t save the change: ${error.message}`);
+      await reload();
     },
-    [principal, save],
+    [owner, reload],
   );
 
-  return { agents, loaded, add, remove, update };
+  return { agents, loaded, error, add, remove, update };
+}
+
+/** Moves agents saved in this browser before accounts existed into the account, then forgets them here. */
+async function importLegacy(owner: string) {
+  let legacy: SavedAgent[] = [];
+  try {
+    legacy = JSON.parse(localStorage.getItem(legacyKey(owner)) ?? "[]") as SavedAgent[];
+  } catch {
+    return;
+  }
+  if (legacy.length === 0) return;
+  const rows = legacy.map((a) => ({
+    chain_id: chain.id,
+    principal: owner,
+    address: a.address.toLowerCase(),
+    name: a.name.slice(0, 48) || "Agent",
+    capabilities: a.capabilities ?? [],
+  }));
+  const { error } = await supabaseBrowser()
+    .from("agents")
+    .upsert(rows, { onConflict: "user_id,chain_id,principal,address", ignoreDuplicates: true });
+  if (!error) {
+    try {
+      localStorage.removeItem(legacyKey(owner));
+    } catch {
+      // Storage blocked: the import is idempotent, so a second run changes nothing.
+    }
+  }
 }
 
 export interface ChainMandate {

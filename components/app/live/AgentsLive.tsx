@@ -14,7 +14,7 @@ import { ConnectFirst, CopyButton, TxLine } from "./Wallet";
  * as the only signer whose permits the vault will honour. The contract enforces the
  * budget, the expiry and revocation on every spend; the per-payment cap is enforced by
  * the engine when it issues a permit (engine ADR-0009). What the agent may pay for
- * (capabilities) is engine policy only: it is kept with the agent here and goes into
+ * (capabilities) is engine policy only: it is saved to the account and goes into
  * the engine's mandate through the Connect panel.
  */
 export function AgentsLive({ ws }: { ws: string }) {
@@ -30,7 +30,7 @@ export function AgentsLive({ ws }: { ws: string }) {
 
 function AgentsPanel({ ws }: { ws: string }) {
   const { principal } = usePrincipal();
-  const { agents, add, remove, update } = useSavedAgents(principal);
+  const { agents, error, add, remove, update } = useSavedAgents(principal);
   const mandates = useMandates(
     principal,
     agents.map((a) => a.address),
@@ -41,10 +41,15 @@ function AgentsPanel({ ws }: { ws: string }) {
 
   return (
     <>
+      {error ? (
+        <p className="lv-note stop" role="alert">
+          {error}
+        </p>
+      ) : null}
       <RegisterForm
         principal={principal!}
         onAdd={(a) => {
-          add(a);
+          void add(a);
           setJustAdded(a.address.toLowerCase());
         }}
         first={agents.length === 0}
@@ -66,8 +71,8 @@ function AgentsPanel({ ws }: { ws: string }) {
                   loading={mandates.isLoading}
                   vault={position}
                   startOpen={justAdded === key ? "limits" : null}
-                  onRemove={() => remove(a.address)}
-                  onCapabilities={(capabilities) => update(a.address, { capabilities })}
+                  onRemove={() => void remove(a.address)}
+                  onCapabilities={(capabilities) => void update(a.address, { capabilities })}
                   tx={tx}
                   principal={principal!}
                 />
@@ -76,7 +81,7 @@ function AgentsPanel({ ws }: { ws: string }) {
           </div>
           <TxLine state={tx.state} />
           <p className="ap-sub lv-small">
-            The list of agents and their capabilities are kept in this browser; each agent’s limits, spend and status are read
+            Your agents and their capabilities are saved to your account; each agent’s limits, spend and status are read
             from the vault contract. The engine side is on <Link href={`/app/${ws}/developers`}>Developers</Link>.
           </p>
         </section>

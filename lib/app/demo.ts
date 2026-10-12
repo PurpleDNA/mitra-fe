@@ -165,7 +165,7 @@ export const acme: Workspace = {
 /** A workspace that has just been created: the state every new user starts in. */
 export const fresh: Workspace = {
   slug: "new",
-  name: "New workspace",
+  name: "Your workspace",
   demo: false,
   vault: [],
   agents: [],

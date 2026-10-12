@@ -34,7 +34,7 @@ const date = (s: bigint) => new Date(Number(s) * 1000).toLocaleDateString("en-GB
 /**
  * One agent as a spend card: who holds it, how much headroom is left, the cap per
  * payment and what it may pay for. Everything money-shaped is read from the vault
- * contract; capabilities are engine policy kept with the agent in this browser.
+ * contract; capabilities are engine policy, saved to the account.
  */
 export function AgentCard({
   agent,
@@ -251,7 +251,7 @@ function CapabilitiesEditor({ value, onSave }: { value: string[]; onSave: (c: st
         />
       </label>
       <p className="lv-hint">
-        Saved in this browser with the agent. The engine only learns them when you send its rules (Connect → step 2), and the vault
+        Saved to your account. The engine only learns them when you send its rules (Connect → step 2), and the vault
         contract never sees them.
       </p>
       <div className="ap-actions">

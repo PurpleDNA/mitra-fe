@@ -81,12 +81,27 @@ For the people behind the agents: they fund a vault, give agents limits, watch p
 step in, and see what cleared. Agents never use it; they use the SDK, API or MCP.
 Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
 
-- **The app is early access.** `proxy.ts` sends every `/app` request without the access
-  cookie to `/access`, which takes a shared code (`MITRA_EARLY_ACCESS_CODE`, set in Vercel
-  for production and preview, and in `.env.local` for dev). The cookie holds a keyed hash of
-  the code, so changing the code locks everyone out. Unset, the gate admits nobody. It is a
-  gate, not authentication; real sign-in replaces it when the engine has accounts. Nothing
-  public links to `/app`.
+- **Two doors in front of `/app`** (`proxy.ts`, in order):
+  1. **Early access.** Without the access cookie, `/app` sends you to `/access`, which takes a
+     shared code (`MITRA_EARLY_ACCESS_CODE`, set in Vercel for production and preview, and in
+     `.env.local`). The cookie holds a keyed hash of the code, so changing the code locks
+     everyone out. Unset, the gate admits nobody.
+  2. **An account.** Without a Supabase session, `/app` sends you to `/signin`: Google,
+     GitHub, wallet (Sign in with Ethereum) or an email link. `/auth/callback` trades the
+     one-time code for a session; `/auth/signout` is POST only. The proxy refreshes the
+     session cookie on every matched request (`lib/supabase/proxy.ts`).
+  Someone already through a door is never shown it again.
+- **Accounts live in Supabase**, project `mitra` (ref `tjlnxnirtltczjruymnl`, eu-west-2,
+  free tier, org "TYSIN Org"). Clients in `lib/supabase/`. Env: `NEXT_PUBLIC_SUPABASE_URL`,
+  `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (public by design; set in Vercel and `.env.local`).
+  No service-role key is used anywhere in this app.
+- **Table `agents`** holds what the chain doesn't: which agents belong to the account (per
+  chain and vault owner), their names and capabilities. Row-level security: an account
+  reads and writes only its own rows. Agents saved in the browser before accounts are
+  imported into the account on first load, then cleared from the browser.
+- Sign-in methods are switched on in the Supabase dashboard (Authentication → Providers),
+  and each site address must be allowed under Authentication → URL Configuration. A
+  method that is off fails with a plain message on `/signin`, never silently.
 - Routes are `/app/<workspace>/…`. `/app` sends a new arrival to `/app/new`.
 - **Two workspaces today, and why.** The engine has no customer accounts (no
   organisations, sign-in or per-customer keys), so the app cannot know who a user is.
@@ -99,7 +114,7 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
     (`0x92dcee6a…e489`, copied from `../mitra/lib/evm/deployments.json`, never retyped)
     in Circle test USDC. Positions are read from `vaults(principal, token)`.
   - Agents: the agent's wallet address and a name. The contract has no holder list, so
-    the addresses live in `localStorage` per principal; everything else is read from
+    the list lives in the account (`agents` table); everything else is read from
     `mandates(principal, holder, token)`.
   - Limits: `openMandate` / `amendMandate` / `revokeMandate`, naming the engine's policy
     key (`POLICY_ENGINE` in `lib/chain/config.ts`, overridable with
@@ -108,8 +123,8 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
   - "Pause all" is `setEmergencyFreeze` on the user's vault position.
   - Each agent is a **spend card** (`components/app/live/AgentCard.tsx`): headroom, cap,
     end date, version, capabilities, and four panels: limits, capabilities, Try it, Connect.
-  - **Capabilities are engine policy, not vault state.** Preset chips plus typed tags, kept
-    with the agent in `localStorage`; they fill the engine-mandate snippet in Connect.
+  - **Capabilities are engine policy, not vault state.** Preset chips plus typed tags, saved
+    with the agent in the account; they fill the engine-mandate snippet in Connect.
     Empty means the engine's default (`payment`, `research`).
   - **Try it is a dry run** (`lib/chain/dryrun.ts`): it evaluates a pretend request against
     the agent's real on-chain limits and vault, with the exact codes the vault contract and

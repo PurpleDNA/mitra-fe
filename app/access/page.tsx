@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Mark } from "@/components/Mark";
 import { ACCESS_COOKIE, cookieGrantsAccess, safeNext } from "@/lib/access";
+import { currentAccount } from "@/lib/supabase/server";
 import { site } from "@/lib/site";
 import { unlock } from "./actions";
 import "./access.css";
@@ -17,7 +18,9 @@ export default async function Access({ searchParams }: { searchParams: Promise<{
   const sp = await searchParams;
   const next = safeNext(sp.next);
   // Already let in: no second stop on the way to the app.
-  if (await cookieGrantsAccess((await cookies()).get(ACCESS_COOKIE)?.value)) redirect(next);
+  if (await cookieGrantsAccess((await cookies()).get(ACCESS_COOKIE)?.value)) {
+    redirect((await currentAccount()) ? next : `/signin?next=${encodeURIComponent(next)}`);
+  }
   return (
     <main className="ax">
       <div className="ax-card">

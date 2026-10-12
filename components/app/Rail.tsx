@@ -19,10 +19,13 @@ export function Rail({
   ws,
   workspaces,
   needsYou,
+  account,
 }: {
   ws: string;
   workspaces: { slug: string; name: string; demo: boolean }[];
   needsYou: number;
+  /** Who is signed in, as an email or a short wallet address. */
+  account: string | null;
 }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -55,6 +58,17 @@ export function Rail({
           </Link>
         ))}
       </nav>
+      {account ? (
+        <form action="/auth/signout" method="post" className="ap-account">
+          <span className="tag">Signed in</span>
+          <span className="ap-account-who" title={account}>
+            {account}
+          </span>
+          <button type="submit" className="ap-footlink ap-signout">
+            Sign out
+          </button>
+        </form>
+      ) : null}
       <div className="ap-foot">
         <span className="ap-chip">
           <span className="ap-dot-stop" aria-hidden="true" />

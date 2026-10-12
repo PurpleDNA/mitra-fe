@@ -7,6 +7,7 @@ import { WalletProviders } from "@/components/app/WalletProviders";
 import { WalletButton } from "@/components/app/live/Wallet";
 import { PauseAll } from "@/components/app/live/StepsLive";
 import { getWorkspace, listWorkspaces, workspaceSlugs } from "@/lib/app/workspaces";
+import { currentAccount } from "@/lib/supabase/server";
 
 export const dynamicParams = false;
 export const generateStaticParams = () => workspaceSlugs().map((ws) => ({ ws }));
@@ -20,10 +21,11 @@ export default async function AppLayout({ children, params }: { children: React.
   const { ws } = await params;
   const w = getWorkspace(ws);
   if (!w) notFound();
+  const account = await currentAccount();
   return (
     <WalletProviders>
     <div className="ap">
-      <Rail ws={w.slug} workspaces={listWorkspaces()} needsYou={w.needsYou.length} />
+      <Rail ws={w.slug} workspaces={listWorkspaces()} needsYou={w.needsYou.length} account={account?.label ?? null} />
       <div className="ap-main">
         <header className="ap-top">
           <p className="ap-top-l tag">

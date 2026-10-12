@@ -3,6 +3,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { ACCESS_COOKIE, ACCESS_MAX_AGE, accessToken, codeIsCorrect, safeNext } from "@/lib/access";
+import { currentAccount } from "@/lib/supabase/server";
 
 export async function unlock(formData: FormData) {
   const next = safeNext(String(formData.get("next") ?? ""));
@@ -18,5 +19,6 @@ export async function unlock(formData: FormData) {
     path: "/",
     maxAge: ACCESS_MAX_AGE,
   });
-  redirect(next);
+  // The next door is an account: go straight there rather than bouncing off /app.
+  redirect((await currentAccount()) ? next : `/signin?next=${encodeURIComponent(next)}`);
 }
