@@ -1467,3 +1467,44 @@
     display: none;
   }
 }
+
+/* Generated agent key: shown once. */
+.lv-keybox {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--ink);
+  background: var(--panel);
+}
+.lv-keybox p {
+  margin: 0;
+}
+.lv-keyrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.lv-keyrow code {
+  flex: 1 1 280px;
+  min-width: 0;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid var(--line-2);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.lv-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.lv-check input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+}

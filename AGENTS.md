@@ -126,7 +126,11 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
   (`../mitra/lib/settlement/rails.ts`) pays from the principal it was started with (its
   own key). Until that is configurable, step 5 ("let it work") cannot complete for a
   user's vault, and the Developers page says so.
-- Env: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` (optional; without it only browser-extension
+- **Generate an agent wallet** (register form) makes a key in the browser with viem, shows it
+  once with a copy button, and keeps Register disabled until the person ticks that they saved
+  it. The key is never stored or sent. Test networks only, and the screen says so.
+- Env: see `.env.example`. `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` is read in one place,
+  `WALLETCONNECT_PROJECT_ID` in `lib/chain/config.ts` (optional; without it only browser-extension
   wallets and Coinbase Wallet are offered), `NEXT_PUBLIC_RPC_URL` (optional; point reads at
   another node, e.g. an anvil fork of Base Sepolia for testing).
 - **Testing the flow without spending testnet funds:** `anvil --fork-url

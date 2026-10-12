@@ -8,3 +8,4 @@ next-env.d.ts
 *:Zone.Identifier
 .vercel
 .env*
+!.env.example

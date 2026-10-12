@@ -13,14 +13,10 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { createConfig, http, WagmiProvider } from "wagmi";
-import { chain } from "@/lib/chain/config";
+import { chain, WALLETCONNECT_PROJECT_ID } from "@/lib/chain/config";
 
-/**
- * WalletConnect wallets (mobile, QR) need a project id from cloud.reown.com, set in
- * NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID. Without one, only browser-extension wallets are
- * offered, which is enough to test with MetaMask, Rabby or Coinbase Wallet.
- */
-const projectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+/** WalletConnect wallets (mobile, QR) need a project id; see WALLETCONNECT_PROJECT_ID. */
+const projectId = WALLETCONNECT_PROJECT_ID;
 
 const connectors = connectorsForWallets(
   [

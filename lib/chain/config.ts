@@ -27,6 +27,14 @@ export const USDC = { address: "0x036CbD53842c5426634e7929541eC2318f3dCF7e", sym
 export const POLICY_ENGINE = (process.env.NEXT_PUBLIC_MITRA_POLICY_ENGINE ||
   "0x7823d6bEA51cC21C5d8588C7ff72E33130848116") as `0x${string}`;
 
+/**
+ * WalletConnect (Reown) project id: turns on mobile and QR wallets in the connect modal.
+ * Set NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID in Vercel (Production and Preview) and in
+ * .env.local; get one at https://cloud.reown.com. Empty, the modal offers browser-extension
+ * wallets and Coinbase Wallet only.
+ */
+export const WALLETCONNECT_PROJECT_ID = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID || "";
+
 export const FAUCET_URL = "https://faucet.circle.com";
 export const explorerTx = (hash: string) => `https://sepolia.basescan.org/tx/${hash}`;
 export const explorerAddress = (a: string) => `https://sepolia.basescan.org/address/${a}`;
