@@ -83,9 +83,11 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
 
 - **Two doors in front of `/app`** (`proxy.ts`, in order):
   1. **Early access.** Without the access cookie, `/app` sends you to `/access`, which takes a
-     shared code (`MITRA_EARLY_ACCESS_CODE`, set in Vercel for production and preview, and in
-     `.env.local`). The cookie holds a keyed hash of the code, so changing the code locks
-     everyone out. Unset, the gate admits nobody.
+     code from `MITRA_EARLY_ACCESS_CODES` (comma-separated, one per person or team; five issued
+     2026-10-12) or the older single `MITRA_EARLY_ACCESS_CODE`. Both are set in Vercel for
+     production and preview, and in `.env.local`. The cookie holds a keyed hash of the code that
+     was used, so removing one code from the list locks out only its holders. Codes match
+     case-insensitively. Nothing configured admits nobody.
   2. **An account.** Without a Supabase session, `/app` sends you to `/signin`: Google,
      wallet (Sign in with Ethereum) or an email link. `/auth/callback` trades the
      one-time code for a session (GitHub is off, by decision); `/auth/signout` is POST only. The proxy refreshes the

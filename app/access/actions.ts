@@ -2,17 +2,18 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
-import { ACCESS_COOKIE, ACCESS_MAX_AGE, accessToken, codeIsCorrect, safeNext } from "@/lib/access";
+import { ACCESS_COOKIE, ACCESS_MAX_AGE, accessToken, matchCode, safeNext } from "@/lib/access";
 import { currentAccount } from "@/lib/supabase/server";
 
 export async function unlock(formData: FormData) {
   const next = safeNext(String(formData.get("next") ?? ""));
   const code = String(formData.get("code") ?? "");
-  if (!(await codeIsCorrect(code))) {
+  const matched = await matchCode(code);
+  if (!matched) {
     redirect(`/access?error=1&next=${encodeURIComponent(next)}`);
   }
-  const token = await accessToken();
-  (await cookies()).set(ACCESS_COOKIE, token!, {
+  const token = await accessToken(matched);
+  (await cookies()).set(ACCESS_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

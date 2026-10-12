@@ -1,12 +1,13 @@
 /**
  * The early-access gate in front of /app.
  *
- * One shared code, set in MITRA_EARLY_ACCESS_CODE. Entering it stores a cookie holding a
- * keyed hash of the code, never the code itself; changing the code locks everyone out
- * again. With the variable unset the gate admits nobody: it fails closed.
+ * Codes come from MITRA_EARLY_ACCESS_CODES (comma- or space-separated, one per person or
+ * team) and the older single MITRA_EARLY_ACCESS_CODE; both are honoured. Entering a code
+ * stores a cookie holding a keyed hash of THAT code, never the code itself, so removing one
+ * code from the list locks out only the people who used it. With no code configured the
+ * gate admits nobody: it fails closed.
  *
- * This is an early-access gate, not authentication. The engine has no customer accounts
- * yet; when it does, real sign-in replaces this.
+ * This is an early-access gate, not authentication; sign-in (Supabase) is the second door.
  *
  * Web Crypto only, so the same code runs in the proxy and in the server action.
  */
@@ -28,25 +29,37 @@ function sameLength(a: string, b: string): boolean {
   return diff === 0;
 }
 
-const configuredCode = () => process.env.MITRA_EARLY_ACCESS_CODE?.trim() || null;
-
-/** The cookie value a correct code earns. Null when no code is configured. */
-export async function accessToken(): Promise<string | null> {
-  const code = configuredCode();
-  return code ? hmacHex(code, "mitra-early-access-v1") : null;
+function configuredCodes(): string[] {
+  const list = (process.env.MITRA_EARLY_ACCESS_CODES ?? "").split(/[\s,]+/);
+  const single = process.env.MITRA_EARLY_ACCESS_CODE ?? "";
+  return [...new Set([...list, single].map((c) => c.trim()).filter(Boolean))];
 }
 
-export async function codeIsCorrect(input: string): Promise<boolean> {
-  const code = configuredCode();
-  if (!code) return false;
-  // Compare hashes, so the comparison does not leak the code's length or prefix.
-  const [a, b] = await Promise.all([hmacHex("cmp", input.trim()), hmacHex("cmp", code)]);
-  return sameLength(a, b);
+/** The cookie value a given code earns. The derivation is unchanged, so existing cookies stay valid. */
+export async function accessToken(code: string): Promise<string> {
+  return hmacHex(code, "mitra-early-access-v1");
+}
+
+/**
+ * The configured code the input matches, or null. Codes are matched exactly, or in
+ * upper case, so "mitra-7kq4-…" typed in lower case still works. Hashes are compared,
+ * so the comparison leaks neither length nor prefix.
+ */
+export async function matchCode(input: string): Promise<string | null> {
+  const typed = input.trim();
+  if (!typed) return null;
+  const candidates = [...new Set([typed, typed.toUpperCase()])];
+  for (const code of configuredCodes()) {
+    const want = await hmacHex("cmp", code);
+    for (const c of candidates) if (sameLength(await hmacHex("cmp", c), want)) return code;
+  }
+  return null;
 }
 
 export async function cookieGrantsAccess(value: string | undefined): Promise<boolean> {
-  const token = await accessToken();
-  return Boolean(token && value && sameLength(value, token));
+  if (!value) return false;
+  for (const code of configuredCodes()) if (sameLength(value, await accessToken(code))) return true;
+  return false;
 }
 
 /** Only ever send people back into the app, never to another site. */

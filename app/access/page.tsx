@@ -49,6 +49,8 @@ export default async function Access({ searchParams }: { searchParams: Promise<{
               name="code"
               type="password"
               autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
               required
               aria-invalid={sp.error ? true : undefined}
               aria-describedby={sp.error ? "code-error" : undefined}
