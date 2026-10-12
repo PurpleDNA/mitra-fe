@@ -886,3 +886,249 @@
     border-top: 1px solid var(--line);
   }
 }
+
+/* ── Live workspace: wallet, vault, agents (components/app/live) ─────────── */
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.lv-acct {
+  gap: 8px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.lv-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  display: block;
+  flex: none;
+}
+.lv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
+  gap: 16px;
+}
+.lv-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+.lv-card h2 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.lv-card p {
+  margin: 0;
+  max-width: 560px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--body);
+}
+.lv-register {
+  border-color: var(--ink);
+  border-width: 1.5px;
+}
+.lv-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+  width: 100%;
+}
+.lv-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1 1 160px;
+  min-width: 0;
+}
+.lv-wide {
+  flex: 3 1 320px;
+}
+.lv-field input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-radius: 0;
+  background: #fff;
+  font: inherit;
+  font-size: 15px;
+  color: var(--ink);
+}
+.lv-field input.mono {
+  font-family: var(--mono);
+  font-size: 13px;
+}
+.lv-field input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+  border-color: var(--accent);
+}
+.lv-card > .lv-field {
+  flex: none;
+  width: 100%;
+  max-width: 360px;
+}
+.lv-row {
+  display: flex;
+}
+.lv-row input {
+  flex: 1;
+  min-width: 0;
+}
+.lv-max {
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line-2);
+  border-left: 0;
+  background: var(--panel);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.lv-err,
+.lv-card .lv-err {
+  margin: 0;
+  font-size: 13px;
+  color: var(--stop-text);
+}
+.lv-hint,
+.lv-card .lv-hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--mute);
+  max-width: 640px;
+}
+.lv-small {
+  font-size: 13px;
+  color: var(--mute);
+}
+.lv-note {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line-2);
+  font-size: 14px;
+}
+.lv-note.stop {
+  border-color: var(--stop);
+  color: var(--stop-text);
+}
+.lv-tx {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--mute);
+}
+.lv-tx.done {
+  color: var(--ink);
+}
+.lv-tx.failed {
+  color: var(--stop-text);
+}
+.lv-tx a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.lv-facts {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 40px;
+}
+.lv-facts div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lv-facts dd {
+  margin: 0;
+  font-size: 14px;
+}
+.lv-facts a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.lv-agents {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.lv-agent {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 20px 24px;
+  border: 1px solid var(--line);
+}
+.lv-agent header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+.lv-agent h3 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.lv-agent header a {
+  text-decoration: none;
+}
+.lv-limits {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.lv-limits div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lv-limits dd {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+.lv-limits-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  background: var(--panel);
+}
+.lv-link {
+  border: 0;
+  background: none;
+  padding: 0 4px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--mute);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.ap-steps.lv-steps {
+  grid-template-columns: repeat(auto-fit, minmax(min(190px, 100%), 1fr));
+}
+.lv-steps button.ap-btn {
+  align-self: flex-start;
+}

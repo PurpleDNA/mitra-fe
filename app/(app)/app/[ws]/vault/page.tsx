@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { Empty, PageHead } from "@/components/app/Blocks";
+import { PageHead } from "@/components/app/Blocks";
 import { getWorkspace, money, totals } from "@/lib/app/workspaces";
-import { site } from "@/lib/site";
+import { VaultLive } from "@/components/app/live/VaultLive";
 
 export const metadata = { title: "Vault" };
 
@@ -11,16 +11,12 @@ export default async function Vault({ params }: { params: Promise<{ ws: string }
   if (!w) notFound();
   const sub = "The money your agents can spend. It stays here until a payment passes all three checks.";
 
-  if (w.vault.length === 0) {
+  // A real workspace reads the vault contract for the connected wallet.
+  if (!w.demo) {
     return (
       <>
         <PageHead title="Vault" sub={sub} />
-        <Empty
-          title="No vault yet"
-          body="A vault holds your agents’ money on chain: the Mitra vault contract on Base Sepolia and Tempo Moderato, or the Mitra program on Solana devnet. Setting one up from the app arrives with accounts; until then the Mitra team sets it up with each early-access team."
-          action={{ href: site.earlyAccessHref, label: "Request early access" }}
-          secondary={{ href: "/docs/what-is-mitra", label: "What a vault does" }}
-        />
+        <VaultLive />
       </>
     );
   }

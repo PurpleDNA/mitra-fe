@@ -49,6 +49,8 @@ lib/site.ts             facts the page states about itself
 public/brand/           logo source files: mark (primary, compact, display, reverse, on-accent),
                         lockups (horizontal, stacked, reverse, on-accent), bracketed wordmark.
                         The wordmark is Geist SemiBold outlined, tracking −4.5%.
+  brand/mitra-logo-pack/ + .zip   the logo pack for handing out, GENERATED from the primary
+                        SVGs above by `node scripts/brand-pack.mjs`. Never edit it by hand.
 app/docs/               the developer portal: shell layout, home, [slug] pages
 lib/docs/nav.ts         portal structure: sections, pages, reader tracks
 lib/docs/render.tsx     markdown → React: GFM, KaTeX, Shiki, code tabs, link rewriting
@@ -88,17 +90,46 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
 - Routes are `/app/<workspace>/…`. `/app` sends a new arrival to `/app/new`.
 - **Two workspaces today, and why.** The engine has no customer accounts (no
   organisations, sign-in or per-customer keys), so the app cannot know who a user is.
-  `new` is the empty workspace every new user starts in; its pages are the onboarding:
-  each empty page says what is missing and links to the step that fills it. `acme` is
-  demo data (`lib/app/demo.ts`), labelled "Demo data" on every page.
-- **One data seam:** screens read only `lib/app/workspaces.ts` and the types in
-  `lib/app/types.ts`. An engine-backed workspace plugs in there once accounts exist.
-- **Actions are honest.** `DemoAction` buttons (approve, pause, accept, revoke) do nothing
-  and say so; nothing in the app may claim a payment, refund or pause happened.
+  `new` is the **live workspace**: the person connects a wallet (RainbowKit + wagmi,
+  `components/app/WalletProviders.tsx`) and that wallet is their vault's principal. `acme`
+  is demo data (`lib/app/demo.ts`), labelled "Demo data" on every page.
+- **The live workspace is on chain, from the user's wallet** (`components/app/live/`,
+  `lib/chain/`), Base Sepolia only:
+  - Vault: `deposit` / `withdraw` on the canonical MitraVault
+    (`0x92dcee6a…e489`, copied from `../mitra/lib/evm/deployments.json`, never retyped)
+    in Circle test USDC. Positions are read from `vaults(principal, token)`.
+  - Agents: the agent's wallet address and a name. The contract has no holder list, so
+    the addresses live in `localStorage` per principal; everything else is read from
+    `mandates(principal, holder, token)`.
+  - Limits: `openMandate` / `amendMandate` / `revokeMandate`, naming the engine's policy
+    key (`POLICY_ENGINE` in `lib/chain/config.ts`, overridable with
+    `NEXT_PUBLIC_MITRA_POLICY_ENGINE`). Expired or revoked limits cannot be reopened for
+    the same wallet (the contract refuses `MANDATE_ALREADY_EXISTS`), and the screen says so.
+  - "Pause all" is `setEmergencyFreeze` on the user's vault position.
+  - Only a receipt with status `success` is shown as confirmed; failures show the revert reason.
+- **Known gap: the engine does not yet pay from a vault opened here.** Its vault rail
+  (`../mitra/lib/settlement/rails.ts`) pays from the principal it was started with (its
+  own key). Until that is configurable, step 5 ("let it work") cannot complete for a
+  user's vault, and the Developers page says so.
+- Env: `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` (optional; without it only browser-extension
+  wallets and Coinbase Wallet are offered), `NEXT_PUBLIC_RPC_URL` (optional; point reads at
+  another node, e.g. an anvil fork of Base Sepolia for testing).
+- **Testing the flow without spending testnet funds:** `anvil --fork-url
+  https://sepolia.base.org --chain-id 84532`, give an anvil account test USDC by writing
+  its balance (FiatToken balance mapping, slot 9), run `next dev` with
+  `NEXT_PUBLIC_RPC_URL=http://127.0.0.1:8545`, and use a wallet pointed at the fork.
+- `next.config.ts` aliases five optional `@x402/*` imports to `lib/chain/x402-unused.ts`:
+  wagmi's Base Account connector pulls in `@coinbase/cdp-sdk`, whose lazy x402 helpers
+  import packages that are not installed. The app never calls them.
+- **One data seam for the demo:** screens read `lib/app/workspaces.ts` and the types in
+  `lib/app/types.ts`; the live workspace reads the chain through `lib/chain/hooks.ts`.
+- **Actions are honest.** In the demo, `DemoAction` buttons do nothing and say so. In the
+  live workspace every action is a real transaction; nothing may claim a payment, refund
+  or pause happened without a successful receipt.
 - **The setup snippets are the engine's real interface**, checked against `../mitra`
   (`lib/sdk/client.ts`, `app/api/v1/mandates/route.ts`, `scripts/mitra-mcp.ts`). Re-check
-  them when the engine changes. There is no API to create a vault, so that step points
-  at early access rather than a form.
+  them when the engine changes.
+- Someone already let in (valid access cookie) who opens `/access` goes straight on to the app.
 - The design adds a "needs you over $X" review threshold; the engine has the `REVIEW`
   decision but no such mandate field yet.
 
@@ -153,3 +184,13 @@ npm run docs:sync  # copy the portal pages from ../mitra (or $MITRA_ENGINE_DIR)
 - The portal has no Solana/Base/Tempo code toggle: the pages carry no per-chain samples
   to toggle between, and inventing them would be the F105 failure again.
 - `docs/llms.txt` was not part of the claims check and will repeat the pages' errors.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Mark } from "@/components/Mark";
-import { safeNext } from "@/lib/access";
+import { ACCESS_COOKIE, cookieGrantsAccess, safeNext } from "@/lib/access";
 import { site } from "@/lib/site";
 import { unlock } from "./actions";
 import "./access.css";
@@ -14,6 +16,8 @@ export const metadata: Metadata = {
 export default async function Access({ searchParams }: { searchParams: Promise<{ next?: string; error?: string }> }) {
   const sp = await searchParams;
   const next = safeNext(sp.next);
+  // Already let in: no second stop on the way to the app.
+  if (await cookieGrantsAccess((await cookies()).get(ACCESS_COOKIE)?.value)) redirect(next);
   return (
     <main className="ax">
       <div className="ax-card">

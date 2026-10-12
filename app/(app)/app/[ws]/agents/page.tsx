@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Empty, PageHead } from "@/components/app/Blocks";
+import { PageHead } from "@/components/app/Blocks";
+import { AgentsLive } from "@/components/app/live/AgentsLive";
 import { getWorkspace, money } from "@/lib/app/workspaces";
 
 export const metadata = { title: "Agents" };
@@ -10,16 +11,12 @@ export default async function Agents({ params }: { params: Promise<{ ws: string 
   const w = getWorkspace(ws);
   if (!w) notFound();
 
-  if (w.agents.length === 0) {
+  // A real workspace: agents you register, with limits opened in the vault contract.
+  if (!w.demo) {
     return (
       <>
-        <PageHead title="Agents" sub="The agents that can spend from this workspace, and the limits on each." />
-        <Empty
-          title="No agents yet"
-          body="Register an agent so Mitra knows who it is and which wallet it signs with. Then give it limits: a budget, a cap per payment and who it may pay."
-          action={{ href: `/app/${w.slug}/developers#register`, label: "Register an agent" }}
-          secondary={{ href: "/docs/engravings-and-mandates", label: "How limits work" }}
-        />
+        <PageHead title="Agents" sub="The agents that can spend from your vault, and the limits on each." />
+        <AgentsLive ws={w.slug} />
       </>
     );
   }

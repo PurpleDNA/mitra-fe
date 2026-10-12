@@ -3,6 +3,9 @@ import { notFound } from "next/navigation";
 import "../../app.css";
 import { Rail } from "@/components/app/Rail";
 import { DemoAction } from "@/components/app/DemoAction";
+import { WalletProviders } from "@/components/app/WalletProviders";
+import { WalletButton } from "@/components/app/live/Wallet";
+import { PauseAll } from "@/components/app/live/StepsLive";
 import { getWorkspace, listWorkspaces, workspaceSlugs } from "@/lib/app/workspaces";
 
 export const dynamicParams = false;
@@ -18,6 +21,7 @@ export default async function AppLayout({ children, params }: { children: React.
   const w = getWorkspace(ws);
   if (!w) notFound();
   return (
+    <WalletProviders>
     <div className="ap">
       <Rail ws={w.slug} workspaces={listWorkspaces()} needsYou={w.needsYou.length} />
       <div className="ap-main">
@@ -28,15 +32,23 @@ export default async function AppLayout({ children, params }: { children: React.
                 <span className="ap-demo">Demo data</span> Example workspace. Nothing here moves money.
               </>
             ) : (
-              <>{w.name}</>
+              <>{w.name} · Base Sepolia, a test network. Every action here is a real transaction from your wallet.</>
             )}
           </p>
-          <DemoAction stop demo={w.demo}>
-            Pause all
-          </DemoAction>
+          <div className="ap-actions">
+            {w.demo ? (
+              <DemoAction stop demo>
+                Pause all
+              </DemoAction>
+            ) : (
+              <PauseAll />
+            )}
+            <WalletButton />
+          </div>
         </header>
         <main className="ap-body">{children}</main>
       </div>
     </div>
+    </WalletProviders>
   );
 }

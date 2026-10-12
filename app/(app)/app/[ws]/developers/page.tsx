@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHead } from "@/components/app/Blocks";
-import { getWorkspace, onboarding } from "@/lib/app/workspaces";
+import { getWorkspace } from "@/lib/app/workspaces";
 
 export const metadata = { title: "Developers" };
 
@@ -62,14 +62,19 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
   const { ws } = await params;
   const w = getWorkspace(ws);
   if (!w) notFound();
-  const s = onboarding(w);
 
   return (
     <>
       <PageHead
         title="Developers"
-        sub="Agents never use this app. They talk to Mitra through the SDK, the API or MCP. These are the three steps to get one working."
+        sub="Agents never use this app. They talk to Mitra through the SDK, the API or MCP. These are the agent-side steps to get one working."
       />
+      {w.demo ? null : (
+        <p className="lv-note">
+          The app already did the on-chain part from your wallet: the vault and each agent’s limits in the vault contract (
+          <Link href={`/app/${w.slug}/agents`}>Agents</Link>). What follows runs on the agent’s side and against the engine.
+        </p>
+      )}
       <p className="ap-sub" style={{ marginTop: -12 }}>
         Everything here runs against the engine on test networks. Start it with <code className="mono">npm run stack:up</code> in
         the engine repo: the API on port 3005, MCP on 3006.
@@ -77,9 +82,12 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
 
       <section id="register" className="ap-dev">
         <div>
-          <span className="ap-step-n">{s.hasAgent ? "✓ Done" : "Step 02"}</span>
-          <h2>Register an agent</h2>
-          <p>Tell Mitra who the agent is and which wallet it signs with. The registration is signed by that wallet, so nobody can register an agent they don’t control.</p>
+          <span className="ap-step-n">Agent side · 1</span>
+          <h2>Register with the engine</h2>
+          <p>
+            The agent tells the engine who it is, signed by the same wallet you registered on the Agents page, so nobody can
+            register an agent they don’t control.
+          </p>
           <p>
             <Link href="/docs/quickstart">Quickstart in the docs →</Link>
           </p>
@@ -89,11 +97,12 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
 
       <section id="limits" className="ap-dev">
         <div>
-          <span className="ap-step-n">{s.hasLimits ? "✓ Done" : "Step 03"}</span>
-          <h2>Give it limits</h2>
+          <span className="ap-step-n">Agent side · 2</span>
+          <h2>Give the engine its rules</h2>
           <p>
-            You set the limits, with your operator token. The agent can read its own limits but the SDK it holds has no way to
-            create or widen them.
+            The vault holds the hard limits; the engine holds the policy it checks first: who the agent may pay and for what. You
+            set it with your operator token. The agent can read its own rules but the SDK it holds has no way to create or widen
+            them.
           </p>
           <p>
             <Link href="/docs/engravings-and-mandates">How limits work →</Link>
@@ -104,7 +113,7 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
 
       <section id="connect" className="ap-dev">
         <div>
-          <span className="ap-step-n">{s.hasActivity ? "✓ Done" : "Step 04"}</span>
+          <span className="ap-step-n">Agent side · 3</span>
           <h2>Connect it</h2>
           <p>
             Add Mitra to the agent’s MCP config, or use the SDK directly. The MCP server holds no keys and no money: every tool is
@@ -112,6 +121,11 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
           </p>
           <p>
             <Link href="/docs/mcp-gateway">MCP gateway in the docs →</Link>
+          </p>
+          <p className="lv-hint">
+            Known gap: the engine’s vault rail pays from the principal it was started with (its own key), not yet from a vault
+            opened here. Until that is configurable, a payment from your vault is not made by the engine, and this app will not
+            show one.
           </p>
         </div>
         <pre className="ap-code">{CONNECT}</pre>

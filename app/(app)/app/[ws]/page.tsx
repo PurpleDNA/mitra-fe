@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PageHead, Pips, ResultChip, Steps } from "@/components/app/Blocks";
+import { PageHead, Pips, ResultChip } from "@/components/app/Blocks";
+import { StepsLive } from "@/components/app/live/StepsLive";
 import { DemoAction } from "@/components/app/DemoAction";
 import { getWorkspace, money, onboarding, totals } from "@/lib/app/workspaces";
 
@@ -12,7 +13,7 @@ export default async function Activity({ params }: { params: Promise<{ ws: strin
   if (!w) notFound();
   const state = onboarding(w);
 
-  // A new workspace: say what Mitra is for here, and the four steps to the first payment.
+  // A new workspace: say what Mitra is for here, and the five steps to the first payment.
   if (!state.hasActivity) {
     return (
       <>
@@ -21,10 +22,10 @@ export default async function Activity({ params }: { params: Promise<{ ws: strin
           <h1>Your agents haven’t asked to pay for anything yet.</h1>
           <p>
             This page fills up the moment they do: every payment an agent asks for, the three checks it went through, and
-            what Mitra did with it. Four steps get you there.
+            what Mitra did with it. Five steps get you there, all on Base Sepolia with test money.
           </p>
         </div>
-        <Steps ws={w.slug} state={state} />
+        <StepsLive ws={w.slug} />
         <p className="ap-sub">
           Want to see it working first? <Link href="/app/acme">Open the demo workspace</Link>, which is filled with example
           data.

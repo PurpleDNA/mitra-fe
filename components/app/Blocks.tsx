@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import type { CheckResult, Onboarding, PaymentResult } from "@/lib/app/types";
+import type { CheckResult, PaymentResult } from "@/lib/app/types";
 
 export function PageHead({ title, sub, actions }: { title: string; sub?: ReactNode; actions?: ReactNode }) {
   return (
@@ -48,59 +48,6 @@ export function Empty({
         </div>
       ) : null}
     </div>
-  );
-}
-
-/** The four steps between a new workspace and its first checked payment. */
-export function Steps({ ws, state }: { ws: string; state: Onboarding }) {
-  const steps = [
-    {
-      done: state.hasVault,
-      title: "Get a vault",
-      body: "The money your agents can spend lives in a vault on a test network.",
-      href: `/app/${ws}/vault`,
-      cta: "Set up the vault",
-    },
-    {
-      done: state.hasAgent,
-      title: "Register an agent",
-      body: "Tell Mitra who your agent is and which wallet it signs with.",
-      href: `/app/${ws}/developers#register`,
-      cta: "Register an agent",
-    },
-    {
-      done: state.hasLimits,
-      title: "Give it limits",
-      body: "A budget, a cap per payment, who it may pay. It can never change these.",
-      href: `/app/${ws}/developers#limits`,
-      cta: "Set its limits",
-    },
-    {
-      done: state.hasActivity,
-      title: "Connect it and let it work",
-      body: "Point the agent at Mitra over MCP or the SDK. Its first payment shows up here.",
-      href: `/app/${ws}/developers#connect`,
-      cta: "Connect the agent",
-    },
-  ];
-  const next = steps.findIndex((s) => !s.done);
-  return (
-    <ol className="ap-steps">
-      {steps.map((s, i) => (
-        <li key={s.title} className={s.done ? "done" : i === next ? "next" : undefined}>
-          <span className="ap-step-n">{s.done ? "✓" : String(i + 1).padStart(2, "0")}</span>
-          <span className="ap-step-t">{s.title}</span>
-          <span className="ap-step-b">{s.body}</span>
-          {s.done ? (
-            <span className="tag">Done</span>
-          ) : (
-            <Link href={s.href} className={`btn ${i === next ? "btn-dark" : "btn-line"} ap-btn`}>
-              {s.cta} <span aria-hidden="true">→</span>
-            </Link>
-          )}
-        </li>
-      ))}
-    </ol>
   );
 }
 
