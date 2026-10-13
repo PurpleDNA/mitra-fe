@@ -22,8 +22,11 @@ it never reimplements it.
 ## Design source of truth
 
 The approved look board on Claude Design:
-https://claude.ai/artifact/HPVbksCjwbkKtmQ5vctFp2 — and its brief,
-`../mitra/Mitra inspo/LOOK_BOARD_PROMPT.md`. Positioning: Mitra is a clearinghouse
+https://claude.ai/artifact/HPVbksCjwbkKtmQ5vctFp2 — and its brief, `LOOK_BOARD_PROMPT.md`.
+The engine repo's `Mitra inspo/` folder was removed on 2026-10-13; the brief's last version
+is `git show d4cb3d2:"Mitra inspo/LOOK_BOARD_PROMPT.md"` in `../mitra`
+([on GitHub](https://github.com/cybort360/mitra/blob/d4cb3d2d5ce9790991e33babd4917042787be675/Mitra%20inspo/LOOK_BOARD_PROMPT.md)).
+Positioning: Mitra is a clearinghouse
 (think DTCC / NIBSS), not an agent wallet. Headline: **"Agents trade. Mitra clears."**
 
 The logo ("Bound", approved 2026-10-11): https://claude.ai/artifact/Jpw5VHLrcHGAa8otoLL5GQ.
