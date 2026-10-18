@@ -1561,3 +1561,29 @@
 div.lv-hint p {
   margin: 0 0 8px;
 }
+
+/* The card's standing with the Mitra engine (components/app/live/EngineSync.tsx). */
+.lv-engine {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line-2);
+}
+.lv-engine.ok {
+  border-style: solid;
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 5%, #fff);
+}
+.lv-engine-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+.lv-engine-t {
+  flex: 1 1 280px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
+}

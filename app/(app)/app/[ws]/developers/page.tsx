@@ -6,8 +6,8 @@ import { getWorkspace } from "@/lib/app/workspaces";
 export const metadata = { title: "Developers" };
 
 // Every snippet below is the engine's real interface, checked against ../mitra:
-// lib/sdk/client.ts (MitraClient, agents.register), app/api/v1/mandates/route.ts
-// (createMandateSchema, operator token) and scripts/mitra-mcp.ts (MITRA_API_URL).
+// lib/sdk/client.ts (MitraClient, agents.register), app/api/v1/vaults/sync/route.ts
+// (card sync, owner-signed) and scripts/mitra-mcp.ts (MITRA_API_URL).
 
 const REGISTER = `// The SDK ships inside the engine repo (lib/sdk). There is no npm package yet.
 import { MitraClient } from "../mitra/lib/sdk";
@@ -16,7 +16,7 @@ import { privateKeyToAccount } from "viem/accounts";
 const wallet = privateKeyToAccount(process.env.AGENT_KEY as \`0x\${string}\`);
 
 const mitra = new MitraClient({
-  baseUrl: "http://localhost:3005",   // the engine's API root
+  baseUrl: "https://mitra-engine.fly.dev",   // the engine's API root
   agentId: "agent_research",
   chainId: 84532,                     // Base Sepolia; Tempo Moderato is 42431
   signer: { address: wallet.address, signTypedData: (t) => wallet.signTypedData(t) },
@@ -30,30 +30,20 @@ await mitra.agents.register({
   chain: "base",
 });`;
 
-const LIMITS = `curl -X POST http://localhost:3005/api/v1/mandates \\
-  -H "Authorization: Bearer $MITRA_OPERATOR_TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "name": "Research sprint",
-    "principal": "acme",
-    "agentId": "agent_research",
-    "vaultId": "<your vault id>",
-    "asset": "USDC",
-    "budget": 2000,
-    "maxTransaction": 500,
-    "velocityLimit": { "amount": 1000, "windowMinutes": 1440 },
-    "allowedCounterparties": ["agent_atlas_data"],
-    "allowedCapabilities": ["data_indexing"],
-    "approvedChains": ["base"],
-    "expiresAt": "2026-11-10T00:00:00Z"
-  }'`;
+const SYNC = `POST /api/v1/vaults/sync      (the app sends this for you)
+{
+  "card": { "chain": "base", "principal": "<your wallet>", "holder": "<agent wallet>",
+            "agentId": "agent_research_…", "capabilities": ["payment", "research"],
+            "counterparties": ["*"], "issuedAt": 1791900000 },
+  "auth": { "signer": "<your wallet>", "chainId": 84532, "signature": "0x…" }
+}`;
 
 const CONNECT = `{
   "mcpServers": {
     "mitra": {
       "command": "node",
       "args": ["/path/to/mitra/bin/mitra-mcp.mjs"],
-      "env": { "MITRA_API_URL": "http://localhost:3005" }
+      "env": { "MITRA_API_URL": "https://mitra-engine.fly.dev" }
     }
   }
 }`;
@@ -76,8 +66,9 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
         </p>
       )}
       <p className="ap-sub" style={{ marginTop: -12 }}>
-        Everything here runs against the engine on test networks. Start it with <code className="mono">npm run stack:up</code> in
-        the engine repo: the API on port 3005, MCP on 3006.
+        Everything here runs against the hosted engine on test networks, <code className="mono">https://mitra-engine.fly.dev</code>
+        (MCP for agents on port 8443, with its token). To run your own, <code className="mono">npm run stack:up</code> in the engine
+        repo: the API on 3005, MCP on 3006.
       </p>
 
       <section id="register" className="ap-dev">
@@ -98,17 +89,17 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
       <section id="limits" className="ap-dev">
         <div>
           <span className="ap-step-n">Agent side · 2</span>
-          <h2>Give the engine its rules</h2>
+          <h2>Sync the card with the engine</h2>
           <p>
-            The vault holds the hard limits; the engine holds the policy it checks first: who the agent may pay and for what. You
-            set it with your operator token. The agent can read its own rules but the SDK it holds has no way to create or widen
-            them.
+            Nothing to run. On the <Link href={`/app/${w.slug}/agents`}>Agents</Link> page, press <b>Sync with Mitra</b> on the
+            agent&rsquo;s card. Your wallet signs a message (no gas); the engine checks the signature, reads the budget, cap and end
+            date from the vault contract itself, and takes only the capabilities from you. No operator token is involved.
           </p>
           <p>
             <Link href="/docs/engravings-and-mandates">How limits work →</Link>
           </p>
         </div>
-        <pre className="ap-code">{LIMITS}</pre>
+        <pre className="ap-code">{SYNC}</pre>
       </section>
 
       <section id="connect" className="ap-dev">
@@ -121,11 +112,6 @@ export default async function Developers({ params }: { params: Promise<{ ws: str
           </p>
           <p>
             <Link href="/docs/mcp-gateway">MCP gateway in the docs →</Link>
-          </p>
-          <p className="lv-hint">
-            Known gap: the engine’s vault rail pays from the principal it was started with (its own key), not yet from a vault
-            opened here. Until that is configurable, a payment from your vault is not made by the engine, and this app will not
-            show one.
           </p>
         </div>
         <pre className="ap-code">{CONNECT}</pre>

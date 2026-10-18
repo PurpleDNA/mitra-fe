@@ -4,7 +4,9 @@ import Link from "next/link";
 import { useState } from "react";
 import { isAddress } from "viem";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { useMandates, usePrincipal, useSavedAgents, useTx, useVaultPosition, type SavedAgent } from "@/lib/chain/hooks";
+import { useMandates, useNet, usePrincipal, useSavedAgents, useTx, useVaultPosition, type SavedAgent } from "@/lib/chain/hooks";
+import { ENGINE_PLAIN, enginePost } from "@/lib/engine/client";
+import { engineAgentId, mitraRequestTypedData, registrationRequest, type AgentDraft } from "@/lib/engine/request";
 import { AgentCard } from "./AgentCard";
 import { ConnectFirst, CopyButton, TxLine } from "./Wallet";
 
@@ -37,6 +39,7 @@ function AgentsPanel({ ws }: { ws: string }) {
   );
   const { position } = useVaultPosition(principal);
   const [justAdded, setJustAdded] = useState<string | null>(null);
+  const [engineNote, setEngineNote] = useState<{ ok: boolean; text: string } | null>(null);
   const tx = useTx();
 
   return (
@@ -46,12 +49,18 @@ function AgentsPanel({ ws }: { ws: string }) {
           {error}
         </p>
       ) : null}
+      {engineNote ? (
+        <p className={`lv-tx ${engineNote.ok ? "done" : "failed"}`} role="status">
+          {engineNote.text}
+        </p>
+      ) : null}
       <RegisterForm
         principal={principal!}
         onAdd={(a) => {
           void add(a);
           setJustAdded(a.address.toLowerCase());
         }}
+        onEngine={setEngineNote}
         first={agents.length === 0}
       />
 
@@ -90,7 +99,39 @@ function AgentsPanel({ ws }: { ws: string }) {
   );
 }
 
-function RegisterForm({ principal, onAdd, first }: { principal: `0x${string}`; onAdd: (a: Omit<SavedAgent, "addedAt">) => void; first: boolean }) {
+/**
+ * Registers a wallet generated here with the engine, signed by that wallet's own key while
+ * the key is still in this component (F55: a wallet is only ever registered by itself).
+ * Never blocks saving the agent: if the engine is unreachable, the card says so and the
+ * agent can register itself later.
+ */
+async function registerGenerated(key: `0x${string}`, name: string, principal: string, net: ReturnType<typeof useNet>) {
+  const account = privateKeyToAccount(key);
+  const draft: AgentDraft = {
+    agentId: engineAgentId(name, account.address),
+    name,
+    owner: principal,
+    wallets: [{ chain: net.key, address: account.address }],
+    capabilities: [],
+    protocols: ["mcp"],
+  };
+  const expiresAt = Math.floor(Date.now() / 1000) + 300;
+  const signature = await account.signTypedData(mitraRequestTypedData(registrationRequest(draft, expiresAt), net.chain.id));
+  return enginePost("agents", { agent: draft, expiresAt, proofs: [{ signer: account.address, chainId: net.chain.id, signature }] });
+}
+
+function RegisterForm({
+  principal,
+  onAdd,
+  onEngine,
+  first,
+}: {
+  principal: `0x${string}`;
+  onAdd: (a: Omit<SavedAgent, "addedAt">) => void;
+  onEngine: (note: { ok: boolean; text: string } | null) => void;
+  first: boolean;
+}) {
+  const net = useNet();
   const [name, setName] = useState("");
   const [address, setAddress] = useState("");
   // A key generated here is shown once, so the person can hand it to the agent. It is
@@ -117,6 +158,20 @@ function RegisterForm({ principal, onAdd, first }: { principal: `0x${string}`; o
         e.preventDefault();
         if (!ready) return;
         onAdd({ name: name.trim(), address: address as `0x${string}` });
+        if (usingGenerated) {
+          const key = generated!.key as `0x${string}`;
+          const agentName = name.trim();
+          onEngine({ ok: true, text: `Registering ${agentName} with the Mitra engine…` });
+          void registerGenerated(key, agentName, principal, net).then((r) =>
+            onEngine(
+              r.ok
+                ? { ok: true, text: `${agentName} is registered with the Mitra engine. Open its limits, then sync.` }
+                : { ok: false, text: `${agentName} is saved, but the engine didn’t register it: ${ENGINE_PLAIN[r.error ?? ""] ?? r.error ?? r.status}` },
+            ),
+          );
+        } else {
+          onEngine(null);
+        }
         setName("");
         setAddress("");
         setGenerated(null);

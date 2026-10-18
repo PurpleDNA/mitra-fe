@@ -150,13 +150,27 @@ Design source: https://claude.ai/artifact/9efHw75qjq2doHTetg6zWN.
   - Contract refusals are shown in plain English (`PLAIN` in `lib/chain/hooks.ts`) with the
     raw code in an "Audit details" drawer.
   - Only a receipt with status `success` is shown as confirmed; failures show the revert reason.
-- Agents spend nothing yet. **Known gap: the engine does not yet pay from a vault opened here.** Its vault rail
-  (`../mitra/lib/settlement/rails.ts`) pays from the principal it was started with (its
-  own key). Until that is configurable, step 5 ("let it work") cannot complete for a
-  user's vault, and the Developers page says so.
-- **Generate an agent wallet** (register form) makes a key in the browser with viem, shows it
-  once with a copy button, and keeps Register disabled until the person ticks that they saved
-  it. The key is never stored or sent. Test networks only, and the screen says so.
+- **The engine pays from the customer's vault** (engine branch `feat/vault-owner-pays`):
+  each card has a "Mitra engine" strip (`components/app/live/EngineSync.tsx`) showing whether
+  the engine knows the agent and holds an up-to-date copy of the card, and a **Sync with
+  Mitra** button. The owner's wallet signs a Mitra request (`op: syncCard`, a message, no
+  gas); the engine verifies it, reads budget, cap, expiry and positions from the vault
+  contract itself, and from then on pays the agent's agreements from that vault.
+  - The signing format is reproduced in `lib/engine/request.ts` and must stay byte-identical
+    to the engine's (`canonicalize`, `requestBodyHash`, `mitraRequestTypedData`,
+    `registrationRequest`, `syncRequest`); it was cross-checked digest for digest on
+    2026-10-18. Re-check it whenever either side changes.
+  - A wallet generated here registers itself with the engine at once, signed by its own key
+    (F55). A pasted wallet's agent registers itself with the SDK (Connect → step 1).
+  - Engine agent ids are `agent_<name>_<last 6 of the wallet>` (`engineAgentId`), so two
+    customers' "Research agent"s cannot collide.
+  - Capabilities sent to the engine default to its own (`payment`, `research`); `payment`
+    is what lets an agreement be settled, and the editor warns if it is removed.
+  - `app/api/engine/[...path]` forwards only agents (GET/POST), mandates (GET), sync (POST)
+    and health, for signed-in accounts, to `NEXT_PUBLIC_MITRA_ENGINE_URL`. It holds no secret.
+  - The hosted engine must have `MITRA_EVM_SETTLEMENT_KEY` set, and its address must equal
+    `POLICY_ENGINE`; otherwise the strip says so (`ENGINE_KEY_NOT_CONFIGURED`,
+    `CARD_NAMES_ANOTHER_ENGINE`).
 - Env: see `.env.example`. `NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID` is read in one place,
   `WALLETCONNECT_PROJECT_ID` in `lib/chain/config.ts` (optional; without it only browser-extension
   wallets and Coinbase Wallet are offered), `NEXT_PUBLIC_RPC_URL` (optional; point reads at

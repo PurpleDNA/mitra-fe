@@ -6,6 +6,8 @@ import { money } from "@/lib/app/workspaces";
 import { POLICY_ENGINE, VAULT_ABI, explorerAddress } from "@/lib/chain/config";
 import { dryRun, ENGINE_DEFAULT_CAPABILITIES, type DryRun } from "@/lib/chain/dryrun";
 import { cleanAmount, parseAmount, toUnits, useNet, useTx, type ChainMandate, type SavedAgent } from "@/lib/chain/hooks";
+import { engineAgentId } from "@/lib/engine/request";
+import { EngineSync } from "./EngineSync";
 import { Audit, CopyButton, short } from "./Wallet";
 
 type Status = "loading" | "no-limits" | "active" | "revoked" | "expired" | "other-engine";
@@ -141,6 +143,8 @@ export function AgentCard({
         </p>
       ) : null}
 
+      <EngineSync agent={agent} mandate={m} principal={principal} active={status === "active"} />
+
       <div className="lv-sc-tabs" role="toolbar" aria-label={`${agent.name} actions`}>
         {canSetLimits ? (
           <button type="button" aria-pressed={panel === "limits"} onClick={() => toggle("limits")}>
@@ -199,7 +203,9 @@ const normalise = (t: string) =>
 
 /** Preset chips plus free typing: Enter or a comma turns what you typed into a tag. */
 function CapabilitiesEditor({ value, onSave }: { value: string[]; onSave: (c: string[]) => void }) {
-  const [tags, setTags] = useState<string[]>(value.length ? value : []);
+  // Start from what the engine would actually apply: an agent with none saved runs on the
+  // engine's defaults, so editing must begin there, not from an empty list.
+  const [tags, setTags] = useState<string[]>(value.length ? value : ENGINE_DEFAULT_CAPABILITIES);
   const [draft, setDraft] = useState("");
   const addTag = (raw: string) => {
     const t = normalise(raw);
@@ -251,6 +257,12 @@ function CapabilitiesEditor({ value, onSave }: { value: string[]; onSave: (c: st
           aria-label="Add a capability"
         />
       </label>
+      {!tags.includes("payment") ? (
+        <p className="lv-err">
+          Without <span className="mono">payment</span> the engine can’t settle this agent’s agreements, so it can’t pay for
+          anything. Keep it unless that is what you want.
+        </p>
+      ) : null}
       <p className="lv-hint">
         Saved to your account. The engine only learns them when you send its rules (Connect → step 2), and the vault
         contract never sees them.
@@ -369,31 +381,23 @@ function TryIt({
   );
 }
 
-/** "Research agent" → agent_research: a suggested engine id, which the user may change. */
-const slug = (name: string) =>
-  "agent_" +
-  (name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/(^|_)agent(_|$)/g, "$1")
-    .replace(/^_+|_+$/g, "") || "1");
+/** The engine's public address, for the snippets an agent runs. */
+const ENGINE_URL = process.env.NEXT_PUBLIC_MITRA_ENGINE_URL || "https://mitra-engine.fly.dev";
 
-/** The agent's side and the engine's side, prefilled for this agent, each ready to copy. */
-function ConnectPanel({ agent, mandate, principal }: { agent: SavedAgent; mandate: ChainMandate | null; principal: `0x${string}` }) {
+/** The agent's side, prefilled for this agent, each ready to copy. Your side is the Sync button on the card. */
+function ConnectPanel({ agent, principal }: { agent: SavedAgent; mandate: ChainMandate | null; principal: `0x${string}` }) {
   const net = useNet();
-  const agentId = slug(agent.name);
+  const agentId = engineAgentId(agent.name, agent.address);
   const caps = agent.capabilities?.length ? agent.capabilities : ENGINE_DEFAULT_CAPABILITIES;
-  const budget = mandate ? toUnits(mandate.ceiling) : 20;
-  const perPayment = mandate ? toUnits(mandate.limit) : 5;
-  const ends = mandate ? new Date(Number(mandate.expiresAt) * 1000).toISOString() : new Date(Date.now() + 30 * 86400_000).toISOString();
 
   const register = `// Run by the agent, with ITS key (${short(agent.address)}), not yours.
+// Not needed for a wallet generated in this app: that one registered itself.
 import { MitraClient } from "../mitra/lib/sdk";
 import { privateKeyToAccount } from "viem/accounts";
 
 const wallet = privateKeyToAccount(process.env.AGENT_KEY as \`0x\${string}\`);
 const mitra = new MitraClient({
-  baseUrl: "http://localhost:3005",
+  baseUrl: "${ENGINE_URL}",
   agentId: "${agentId}",
   chainId: ${net.chain.id},
   signer: { address: wallet.address, signTypedData: (t) => wallet.signTypedData(t) },
@@ -406,28 +410,8 @@ await mitra.agents.register({
   chain: "${net.key}",
 });`;
 
-  const rules = `curl -X POST http://localhost:3005/api/v1/mandates \\
-  -H "Authorization: Bearer $MITRA_OPERATOR_TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '${JSON.stringify(
-    {
-      name: `${agent.name} card`,
-      principal,
-      agentId,
-      vaultId: "<the engine's vault id>",
-      asset: net.token.symbol,
-      budget,
-      maxTransaction: perPayment,
-      allowedCapabilities: caps,
-      approvedChains: [net.key],
-      expiresAt: ends,
-    },
-    null,
-    2,
-  ).replace(/\n/g, "\n  ")}'`;
-
   const mcp = JSON.stringify(
-    { mcpServers: { mitra: { command: "node", args: ["/path/to/mitra/bin/mitra-mcp.mjs"], env: { MITRA_API_URL: "http://localhost:3005" } } } },
+    { mcpServers: { mitra: { command: "node", args: ["/path/to/mitra/bin/mitra-mcp.mjs"], env: { MITRA_API_URL: ENGINE_URL } } } },
     null,
     2,
   );
@@ -435,14 +419,13 @@ await mitra.agents.register({
   return (
     <div className="lv-panel">
       <p className="lv-hint">
-        The card above is on chain already. These three run against the engine (<span className="mono">npm run stack:up</span> in the
-        engine repo), prefilled for {agent.name}. The agent id <span className="mono">{agentId}</span> is yours to choose; keep it the
-        same in all three.
+        Three steps get this agent paying: it is registered with the engine as <span className="mono">{agentId}</span>, you sync its
+        card (the <b>Sync with Mitra</b> button above: your wallet signs, the engine reads your limits from the chain), and the agent
+        talks to Mitra over MCP or the SDK. The engine is at <span className="mono">{ENGINE_URL}</span>.
       </p>
       {[
-        ["1 · The agent registers itself", register],
-        ["2 · You give the engine its rules", rules],
-        ["3 · Point the agent at Mitra (MCP)", mcp],
+        ["1 · The agent registers itself (pasted wallets only)", register],
+        ["2 · Point the agent at Mitra (MCP)", mcp],
       ].map(([title, code]) => (
         <div key={title} className="lv-snip">
           <div className="lv-snip-h">
@@ -453,8 +436,8 @@ await mitra.agents.register({
         </div>
       ))}
       <p className="lv-hint">
-        Known gap: the engine’s vault rail pays from the principal it was started with (its own key), not yet from your vault. Until that
-        changes, an agent connected this way cannot spend from this card.
+        Once synced, the engine pays this agent’s accepted agreements from your vault, never more than the card allows: the vault
+        contract checks the budget, end date and revocation on every payment.
       </p>
     </div>
   );
